@@ -6,16 +6,14 @@ if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true)
 
 return [
 	'js' => [
-		'./dist/application.bundle.js',
+		'./dist/component.bundle.js',
 	],
 	'css' => [
-		'./dist/application.bundle.css',
+		'./dist/component.bundle.css',
 	],
 	'rel' => [
 		'main.polyfill.core',
-		'ui.vue3',
-		'local.vue-components.location-component',
-		'ui.vue3.pinia',
+		'local.vue-components.control-hint',
 	],
 	'skip_core' => true,
 ];

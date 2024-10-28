@@ -1,4 +1,5 @@
 import './application.css';
+import { LocationComponent } from 'local.vue-components.location-component';
 
 import { mapState, mapActions } from 'ui.vue3.pinia';
 import { dataStore } from '../stores/data';
@@ -26,7 +27,7 @@ export const Application = {
       SUM_FORMATED: undefined,
     };
   },
-  components: {},
+  components: { LocationComponent },
   // language=Vue
 
   template: `
@@ -44,10 +45,7 @@ export const Application = {
           </td>
           <td>
             <div v-if="prop.TYPE === 'LOCATION'" class="location">
-              <select class="location-search" :name="prop.TYPE"
-                :id="prop.TYPE">
-                <option :data-data='prop.LOCATION_DATA' :value="prop.DEFAULT_VALUE">{{prop.NAME}}</option>
-              </select>
+              <LocationComponent :label="prop.NAME" />
             </div>
             <div v-else-if="prop.TYPE === 'ENUM'">
               <div v-for="(name, code) in prop.OPTIONS">
@@ -226,6 +224,7 @@ export const Application = {
       });
     },
     makeData(data) {
+      console.log(data);
       //pay systems
       this.PAY_SYSTEM_LIST = Object.values(data.PAY_SYSTEM).map((pay) => {
         return {
