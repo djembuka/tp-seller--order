@@ -1,7 +1,7 @@
 import { BitrixVue } from 'ui.vue3';
 import { Application } from './components/application';
 import { createPinia, setActivePinia } from 'ui.vue3.pinia';
-import { dataStore } from './stores/data';
+import { orderStore } from './stores/order';
 
 export class OrderMake {
   #store;
@@ -26,9 +26,11 @@ export class OrderMake {
       mounted() {
         if (self.options && typeof self.options === 'object') {
           Object.keys(self.options).forEach((key) => {
-            dataStore()[key] = self.options[key] || '';
+            orderStore()[key] = self.options[key] || '';
           });
         }
+
+        orderStore().createControls();
       },
     });
 
@@ -40,7 +42,7 @@ export class OrderMake {
     setActivePinia(this.#store);
   }
 
-  getTableStore(): Object {
-    return tableStore;
+  getOrderStore(): Object {
+    return orderStore;
   }
 }

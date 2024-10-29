@@ -116,6 +116,7 @@ export const ControlHint = {
         return this.control.value;
       },
       set(value) {
+        console.log(value);
         this.$emit('input', { value });
 
         if (this.controlValue.length >= this.control.count) {

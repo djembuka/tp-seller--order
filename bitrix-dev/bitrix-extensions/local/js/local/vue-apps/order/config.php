@@ -15,6 +15,7 @@ return [
 		'main.polyfill.core',
 		'ui.vue3',
 		'local.vue-components.location-component',
+		'local.vue-components.control-component',
 		'ui.vue3.pinia',
 	],
 	'skip_core' => true,

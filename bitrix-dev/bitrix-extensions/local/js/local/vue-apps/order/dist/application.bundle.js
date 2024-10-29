@@ -1,195 +1,510 @@
 /* eslint-disable */
-(function (exports,ui_vue3,local_vueComponents_locationComponent,ui_vue3_pinia) {
+(function (
+  exports,
+  ui_vue3,
+  local_vueComponents_locationComponent,
+  local_vueComponents_controlComponent,
+  ui_vue3_pinia
+) {
   'use strict';
 
-  var dataStore = ui_vue3_pinia.defineStore('data', {
+  var orderStore = ui_vue3_pinia.defineStore('order', {
     state: function state() {
       return {
-        sessionid: '',
-        signedParameters: ''
+        OPTIONS: {},
+        controls: {},
       };
-    }
+    },
+    actions: {
+      changeControlValue: function changeControlValue(_ref) {
+        var control = _ref.control,
+          value = _ref.value,
+          checked = _ref.checked;
+        switch (control.property) {
+          case 'text':
+          case 'textarea':
+            this.changeTextControlValue({
+              control: control,
+              value: value,
+            });
+            break;
+          case 'multiselect':
+            this.changeMultiselectValue({
+              control: control,
+              value: value,
+              checked: checked,
+            });
+            break;
+          case 'checkbox':
+            this.changeCheckboxValue({
+              control: control,
+              checked: checked,
+            });
+            break;
+          case 'select':
+            this[
+              'changeSelect'
+                .concat(control.type.substring(0, 1).toUpperCase())
+                .concat(control.type.substring(1).toLowerCase(), 'Value')
+            ]({
+              control: control,
+              value: value,
+            });
+            break;
+          case 'file':
+            this.changeFileValue({
+              control: control,
+              value: value,
+            });
+            break;
+          case 'date':
+            this.changeDateValue({
+              control: control,
+              value: value,
+            });
+            break;
+          case 'color':
+            this.changeColorValue({
+              control: control,
+              value: value,
+            });
+            break;
+        }
+      },
+      changeTextControlValue: function changeTextControlValue(_ref2) {
+        var control = _ref2.control,
+          value = _ref2.value;
+        control.value = value;
+      },
+      changeSelectRadioValue: function changeSelectRadioValue(_ref3) {
+        var control = _ref3.control,
+          value = _ref3.value;
+        console.log(control, value);
+        control.value = value;
+      },
+      setOptions: function setOptions(_ref4) {
+        var options = _ref4.options;
+        this.OPTIONS = options;
+      },
+      createControls: function createControls() {
+        //person type
+        var personType = {
+          property: 'select',
+          type: 'radio',
+          id: 'radioID',
+          name: 'PERSON_TYPE',
+          label: 'Person types',
+        };
+        if (this.OPTIONS.result) {
+          personType.options = Object.values(
+            this.OPTIONS.result.PERSON_TYPE
+          ).map(function (p) {
+            return {
+              label: p.NAME,
+              code: p.ID,
+            };
+          });
+        }
+        personType.value = Object.values(this.OPTIONS.result.PERSON_TYPE).find(
+          function (p) {
+            return p.CHECKED === 'Y';
+          }
+        ).ID;
+
+        //delivery
+        var delivery = {
+          property: 'select',
+          type: 'radio',
+          id: 'ID_DELIVERY_ID_',
+          name: 'DELIVERY_ID',
+          label: 'Delivery',
+        };
+        if (this.OPTIONS.result) {
+          delivery.options = Object.values(this.OPTIONS.result.DELIVERY).map(
+            function (d) {
+              return {
+                label: d.NAME,
+                code: d.ID,
+              };
+            }
+          );
+        }
+        delivery.value = Object.values(this.OPTIONS.result.DELIVERY).find(
+          function (d) {
+            return d.CHECKED === 'Y';
+          }
+        ).ID;
+
+        //paysystem
+        var paysystem = {
+          property: 'select',
+          type: 'radio',
+          id: 'ID_PAY_SYSTEM_ID_',
+          name: 'PAY_SYSTEM_ID',
+          label: 'Pay system',
+        };
+        if (this.OPTIONS.result) {
+          paysystem.options = Object.values(this.OPTIONS.result.PAY_SYSTEM).map(
+            function (p) {
+              return {
+                label: p.NAME,
+                code: p.ID,
+              };
+            }
+          );
+        }
+        paysystem.value = Object.values(this.OPTIONS.result.PAY_SYSTEM).find(
+          function (p) {
+            return p.CHECKED === 'Y';
+          }
+        ).ID;
+
+        //order prors
+        var orderProps = [];
+        if (this.OPTIONS.result) {
+          orderProps = this.OPTIONS.result.ORDER_PROP.properties.map(function (
+            p
+          ) {
+            return {
+              property: 'text',
+              id: p.ID,
+              name: p.CODE,
+              label: p.NAME,
+              value: p.VALUE[0],
+              required: false,
+              disabled: false,
+            };
+          });
+        }
+        this.controls = {
+          hidden: [
+            {
+              property: 'text',
+              id: 'sessid',
+              name: 'sessid',
+              label: 'sessid',
+              value: window.BX.bitrix_sessid(),
+              required: false,
+              disabled: false,
+            },
+            {
+              property: 'text',
+              id: 'soaAction',
+              name: 'soa-action',
+              label: 'soa-action',
+              value: 'saveOrderAjax',
+              required: false,
+              disabled: false,
+            },
+            {
+              property: 'text',
+              id: 'locationType',
+              name: 'location_type',
+              label: 'location_type',
+              value: 'code',
+              required: false,
+              disabled: false,
+            },
+            {
+              property: 'text',
+              id: 'BUYER_STORE',
+              name: 'BUYER_STORE',
+              label: 'BUYER_STORE',
+              value: 'BUYER_STORE',
+              required: false,
+              disabled: false,
+            },
+          ],
+          personType: personType,
+          delivery: delivery,
+          paysystem: paysystem,
+          orderProps: orderProps,
+        };
+        console.log(this.controls);
+      },
+    },
   });
 
-  function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-  function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { babelHelpers.defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+  function ownKeys(object, enumerableOnly) {
+    var keys = Object.keys(object);
+    if (Object.getOwnPropertySymbols) {
+      var symbols = Object.getOwnPropertySymbols(object);
+      enumerableOnly &&
+        (symbols = symbols.filter(function (sym) {
+          return Object.getOwnPropertyDescriptor(object, sym).enumerable;
+        })),
+        keys.push.apply(keys, symbols);
+    }
+    return keys;
+  }
+  function _objectSpread(target) {
+    for (var i = 1; i < arguments.length; i++) {
+      var source = null != arguments[i] ? arguments[i] : {};
+      i % 2
+        ? ownKeys(Object(source), !0).forEach(function (key) {
+            babelHelpers.defineProperty(target, key, source[key]);
+          })
+        : Object.getOwnPropertyDescriptors
+        ? Object.defineProperties(
+            target,
+            Object.getOwnPropertyDescriptors(source)
+          )
+        : ownKeys(Object(source)).forEach(function (key) {
+            Object.defineProperty(
+              target,
+              key,
+              Object.getOwnPropertyDescriptor(source, key)
+            );
+          });
+    }
+    return target;
+  }
   var Application = {
     data: function data() {
       return {
         locations: undefined,
         order: undefined,
-        PROPERTIES: undefined,
-        DELIVERY_LIST: undefined,
-        DELIVERY_ERRORS: undefined,
-        PAY_SYSTEM_LIST: undefined,
-        PAY_SYSTEM_ERRORS: undefined,
-        BASKET: undefined,
-        PRODUCTS_BASE_PRICE_FORMATED: undefined,
-        PRODUCTS_PRICE_FORMATED: undefined,
-        PRODUCTS_DISCOUNT_FORMATED: undefined,
-        DELIVERY_BASE_PRICE_FORMATED: undefined,
-        DELIVERY_PRICE_FORMATED: undefined,
-        DELIVERY_DISCOUNT_FORMATED: undefined,
-        SUM_BASE_FORMATED: undefined,
-        DISCOUNT_VALUE_FORMATED: undefined,
-        SUM_FORMATED: undefined
+        sessid: window.BX.bitrix_sessid(),
       };
     },
     components: {
-      LocationComponent: local_vueComponents_locationComponent.LocationComponent
+      LocationComponent:
+        local_vueComponents_locationComponent.LocationComponent,
+      ControlComponent: local_vueComponents_controlComponent.ControlComponent,
     },
     // language=Vue
 
-    template: "\n  <button @click.prevent=\"loadData\">Load</button>\n    <form action=\"\" method=\"post\" name=\"os-order-form\" id=\"os-order-form\">\n      <input type=\"hidden\" name=\"person_type_id\" :value=\"PERSON_TYPE_ID\">\n      <h2>{{OPEN_SOURCE_ORDER_TEMPLATE_PROPERTIES_TITLE}}</h2>\n      <table>\n        <tr v-for=\"prop in PROPERTIES\" :key=\"prop.ID\">\n          <td>\n            <label :for=\"prop.NAME\">\n              <span class=\"required\" style=\"color: red;\" title=\"%s\" v-if=\"prop.REQUIRED === 'Y'\">*</span>\n            </label>\n            <!--<div class=\"error\" data-v-for=\"error in prop.ERRORS\" data-key=\"error.id\">error.getMessage()</div>-->\n          </td>\n          <td>\n            <div v-if=\"prop.TYPE === 'LOCATION'\" class=\"location\">\n              <LocationComponent :label=\"prop.NAME\" />\n            </div>\n            <div v-else-if=\"prop.TYPE === 'ENUM'\">\n              <div v-for=\"(name, code) in prop.OPTIONS\">\n                <label class=\"enum-option\">\n                  <input type=\"radio\" :name=\"prop.NAME\" :value=\"code\">\n                  {{name}}\n                </label>\n              </div>\n            </div>\n            <div v-else-if=\"prop.TYPE === 'DATE'\">\n              <calendar></calendar>\n            </div>\n            <div v-else-if=\"prop.TYPE === 'Y/N'\">\n              <input :id=\"prop.NAME\" type=\"checkbox\" :name=\"prop.NAME\" value=\"Y\">\n            </div>\n            <div v-else>\n              {{prop.NAME}}\n              <input :id=\"prop.NAME\" type=\"text\" :name=\"prop.NAME\" :value=\"prop.VALUE\">\n            </div>\n          </td>\n        </tr>\n\n      </table>\n\n      <h2>{{OPEN_SOURCE_ORDER_TEMPLATE_DELIVERIES_TITLE}}</h2>\n      <!--<div data-v-for=\"error in DELIVERY_ERRORS\" class=\"error\" data-key=\"error.id\">error.getMessage()</div>-->\n      <div v-for=\"arDelivery in DELIVERY_LIST\" :key=\"arDelivery.ID\">\n        <label>\n          <input type=\"radio\" name=\"delivery_id\" :value=\"arDelivery.ID\" :checked=\"arDelivery.CHECKED\">\n          {{arDelivery.NAME}}\n          <span v-html=\"arDelivery.PRICE_FORMATED\"></span>\n        </label>\n        <br>\n      </div>\n\n      <h2>{{OPEN_SOURCE_ORDER_TEMPLATE_PAY_SYSTEMS_TITLE}}</h2>\n      <!--<div data-v-for=\"error in PAY_SYSTEM_ERRORS\" class=\"error\" data-key=\"error.id\">error.getMessage()</div>-->\n      <div v-for=\"arPaySystem in PAY_SYSTEM_LIST\" :key=\"arPaySystem.ID\">\n        <label>\n          <input type=\"radio\" name=\"pay_system_id\" :value=\"arPaySystem.ID\" :checked=\"arPaySystem.CHECKED\">\n          {{arPaySystem.NAME}}\n        </label>\n        <br>\n      </div>\n\n      <h2>{{OPEN_SOURCE_ORDER_TEMPLATE_BASKET_TITLE}}</h2>\n      <table>\n        <tr>\n          <th>{{OPEN_SOURCE_ORDER_TEMPLATE_BASKET_NAME_COLUMN}}</th>\n          <th>{{OPEN_SOURCE_ORDER_TEMPLATE_BASKET_COUNT_COLUMN}}</th>\n          <th>{{OPEN_SOURCE_ORDER_TEMPLATE_BASKET_UNIT_PRICE_COLUMN}}</th>\n          <th>{{OPEN_SOURCE_ORDER_TEMPLATE_BASKET_DISCOUNT_COLUMN}}</th>\n          <th>{{OPEN_SOURCE_ORDER_TEMPLATE_BASKET_TOTAL_COLUMN}}</th>\n        </tr>\n        <tr v-for=\"arBasketItem in BASKET\" :key=\"arBasketItem.ID\">\n          <td>\n            {{arBasketItem.NAME}}\n            <div v-if=\"arBasketItem.PROPERTIES.length\" class=\"basket-properties\">\n              <div v-for=\"prop in arBasketItem.PROPERTIES\" :key=\"prop.ID\">\n                {{prop.NAME}}\n                {{prop.VALUE}}\n                <br>\n              </div>\n            </div>\n          </td>\n          <td>{{arBasketItem.QUANTITY}} {{arBasketItem.MEASURE}}</td>\n          <td v-html=\"arBasketItem.BASE_PRICE_FORMATED\"></td>\n          <td v-html=\"arBasketItem.PRICE_FORMATED\"></td>\n          <td v-html=\"arBasketItem.SUM_FORMATED\"></td>\n        </tr>\n      </table>\n\n      <h2>{{OPEN_SOURCE_ORDER_TEMPLATE_ORDER_TOTAL_TITLE}}</h2>\n\n      <h3>{{OPEN_SOURCE_ORDER_TEMPLATE_PRODUCTS_PRICES_TITLE}}:</h3>\n      <table>\n        <tr>\n          <td>{{OPEN_SOURCE_ORDER_TEMPLATE_PRODUCTS_BASE_PRICE}}</td>\n          <td v-html=\"PRODUCTS_BASE_PRICE_FORMATED\"></td>\n        </tr>\n        <tr>\n          <td>{{OPEN_SOURCE_ORDER_TEMPLATE_PRODUCTS_PRICE}}</td>\n          <td v-html=\"PRODUCTS_PRICE_FORMATED\"></td>\n        </tr>\n        <tr>\n          <td>{{OPEN_SOURCE_ORDER_TEMPLATE_PRODUCTS_DISCOUNT}}</td>\n          <td v-html=\"PRODUCTS_DISCOUNT_FORMATED\"></td>\n        </tr>\n      </table>\n\n      <h3>{{OPEN_SOURCE_ORDER_TEMPLATE_DELIVERY_PRICES_TITLE}}:</h3>\n      <table>\n        <tr>\n          <td>{{OPEN_SOURCE_ORDER_TEMPLATE_DELIVERY_BASE_PRICE}}</td>\n          <td v-html=\"DELIVERY_BASE_PRICE_FORMATED\"></td>\n        </tr>\n        <tr>\n          <td>{{OPEN_SOURCE_ORDER_TEMPLATE_DELIVERY_PRICE}}</td>\n          <td v-html=\"DELIVERY_PRICE_FORMATED\"></td>\n        </tr>\n        <tr>\n          <td>{{OPEN_SOURCE_ORDER_TEMPLATE_DELIVERY_DISCOUNT}}</td>\n          <td v-html=\"DELIVERY_DISCOUNT_FORMATED\"></td>\n        </tr>\n      </table>\n\n      <h3>{{OPEN_SOURCE_ORDER_TEMPLATE_SUM_TITLE}}:</h3>\n      <table>\n        <tr>\n          <td>{{OPEN_SOURCE_ORDER_TEMPLATE_TOTAL_BASE_PRICE}}</td>\n          <td v-html=\"SUM_BASE_FORMATED\"></td>\n        </tr>\n        <tr>\n          <td>{{OPEN_SOURCE_ORDER_TEMPLATE_TOTAL_DISCOUNT}}</td>\n          <td v-html=\"DISCOUNT_VALUE_FORMATED\"></td>\n        </tr>\n        <tr>\n          <td>{{OPEN_SOURCE_ORDER_TEMPLATE_TOTAL_PRICE}}</td>\n          <td v-html=\"SUM_FORMATED\"></td>\n        </tr>\n      </table>\n\n      <input type=\"hidden\" name=\"save\" value=\"y\">\n      <br>\n      <button type=\"submit\">{{OPEN_SOURCE_ORDER_TEMPLATE_MAKE_ORDER_BUTTON}}</button>\n      <br>\n      <br>\n    </form>\n\t",
-    computed: _objectSpread({}, ui_vue3_pinia.mapState(dataStore, ['SESSION_ID', 'SIGNED_PARAMETERS', 'OPTIONS', 'OPEN_SOURCE_ORDER_TEMPLATE_PROPERTIES_TITLE', 'OPEN_SOURCE_ORDER_TEMPLATE_DELIVERIES_TITLE', 'OPEN_SOURCE_ORDER_TEMPLATE_PAY_SYSTEMS_TITLE', 'OPEN_SOURCE_ORDER_TEMPLATE_BASKET_TITLE', 'OPEN_SOURCE_ORDER_TEMPLATE_BASKET_NAME_COLUMN', 'OPEN_SOURCE_ORDER_TEMPLATE_BASKET_COUNT_COLUMN', 'OPEN_SOURCE_ORDER_TEMPLATE_BASKET_UNIT_PRICE_COLUMN', 'OPEN_SOURCE_ORDER_TEMPLATE_BASKET_DISCOUNT_COLUMN', 'OPEN_SOURCE_ORDER_TEMPLATE_BASKET_TOTAL_COLUMN', 'OPEN_SOURCE_ORDER_TEMPLATE_ORDER_TOTAL_TITLE', 'OPEN_SOURCE_ORDER_TEMPLATE_PRODUCTS_PRICES_TITLE', 'OPEN_SOURCE_ORDER_TEMPLATE_PRODUCTS_BASE_PRICE', 'OPEN_SOURCE_ORDER_TEMPLATE_PRODUCTS_PRICE', 'OPEN_SOURCE_ORDER_TEMPLATE_PRODUCTS_DISCOUNT', 'OPEN_SOURCE_ORDER_TEMPLATE_DELIVERY_PRICES_TITLE', 'OPEN_SOURCE_ORDER_TEMPLATE_DELIVERY_BASE_PRICE', 'OPEN_SOURCE_ORDER_TEMPLATE_DELIVERY_PRICE', 'OPEN_SOURCE_ORDER_TEMPLATE_DELIVERY_DISCOUNT', 'OPEN_SOURCE_ORDER_TEMPLATE_SUM_TITLE', 'OPEN_SOURCE_ORDER_TEMPLATE_TOTAL_BASE_PRICE', 'OPEN_SOURCE_ORDER_TEMPLATE_TOTAL_DISCOUNT', 'OPEN_SOURCE_ORDER_TEMPLATE_TOTAL_PRICE', 'OPEN_SOURCE_ORDER_TEMPLATE_MAKE_ORDER_BUTTON'])),
-    methods: _objectSpread(_objectSpread({}, ui_vue3_pinia.mapActions(dataStore, [])), {}, {
-      loadData: function loadData() {
-        var self = this;
-        BX.ajax({
-          method: 'POST',
-          dataType: 'json',
-          url: 'https://seller20testing.twpx.ru/bitrix/components/bitrix/sale.order.ajax/ajax.php',
-          data: dataStore().OPTIONS,
-          onsuccess: BX.delegate(function (result) {
-            self.locations = result.locations;
-            self.makeData(result.order);
-          }, this),
-          onfailure: BX.delegate(function () {
-            self.endLoader();
-          }, this)
-        });
-      },
-      makeData: function makeData(data) {
-        console.log(data);
-        //pay systems
-        this.PAY_SYSTEM_LIST = Object.values(data.PAY_SYSTEM).map(function (pay) {
-          return {
-            ID: pay.ID,
-            SORT: pay.SORT,
-            NAME: pay.NAME,
-            DESCRIPTION: pay.DESCRIPTION,
-            CHECKED: pay.CHECKED,
-            SRC: pay.PSA_LOGOTIP_SRC
-          };
-        });
-
-        //deliveries
-        this.DELIVERY_LIST = Object.values(data.DELIVERY).map(function (del) {
-          return {
-            ID: del.ID,
-            SORT: del.SORT,
-            NAME: del.NAME,
-            DESCRIPTION: del.DESCRIPTION,
-            CHECKED: del.CHECKED,
-            SRC: del.LOGOTIP_SRC,
-            PRICE_FORMATED: del.PRICE_FORMATED,
-            FIELD_NAME: del.FIELD_NAME
-          };
-        });
-
-        //basket
-        this.BASKET = Object.values(data.GRID.ROWS).map(function (product) {
-          return {
-            ID: product.data.ID,
-            SORT: product.data.SORT,
-            NAME: product.data.NAME,
-            PROPERTIES: Object.values(product.data.PROPS),
-            QUANTITY: product.data.QUANTITY,
-            MEASURE: product.data.MEASURE_TEXT,
-            SRC: product.data.DETAIL_PICTURE_SRC_ORIGINAL,
-            BASE_PRICE: product.data.BASE_PRICE,
-            BASE_PRICE_FORMATED: product.data.BASE_PRICE_FORMATED,
-            PRICE: product.data.PRICE,
-            //price with discount
-            PRICE_FORMATED: product.data.PRICE_FORMATED,
-            //price with discount
-            DETAIL_PAGE_URL: product.data.DETAIL_PAGE_URL,
-            DISCOUNT_PRICE: product.data.DISCOUNT_PRICE,
-            DESCRIPTION: product.data.PREVIEW_TEXT,
-            SUM_BASE_FORMATED: product.data.SUM_BASE_FORMATED,
-            SUM_FORMATED: product.data.SUM
-          };
-        });
-
-        //properties
-        this.PROPERTIES = Object.values(data.ORDER_PROP.properties);
-        this.DELIVERY_ERRORS = data.ERROR;
-        this.PAY_SYSTEM_ERRORS = data.ERROR;
-        this.PERSON_TYPE = Object.values(data.PERSON_TYPE);
-        this.PRODUCTS_BASE_PRICE_FORMATED = data.TOTAL.PRICE_WITHOUT_DISCOUNT;
-        this.PRODUCTS_PRICE_FORMATED = data.TOTAL.ORDER_PRICE_FORMATED;
-        this.PRODUCTS_DISCOUNT_FORMATED = data.TOTAL.DISCOUNT_PRICE_FORMATED;
-        this.DELIVERY_BASE_PRICE_FORMATED = data.TOTAL.DELIVERY_PRICE_FORMATED;
-        this.DISCOUNT_PRICE_FORMATED = data.TOTAL.DISCOUNT_PRICE_FORMATED;
-        this.SUM_BASE_FORMATED = data.TOTAL.PRICE_WITHOUT_DISCOUNT;
-        this.SUM_FORMATED = data.TOTAL.ORDER_PRICE_FORMATED;
-      },
-      endLoader: function endLoader() {
-        console.log('endLoader');
+    template:
+      '\n  <form id="bx-soa-order-form" ref="form">\n\n    <fieldset>\n      <legend>Person type</legend>\n      <ControlComponent v-if="controls.personType" :control="controls.personType" @input="input" @hints="hints" />\n    </fieldset>\n\n    <hr>\n\n    <fieldset>\n      <legend>Delivery</legend>\n      <ControlComponent v-if="controls.delivery" :control="controls.delivery" @input="input" @hints="hints" />\n    </fieldset>\n\n    <hr>\n\n    <fieldset>\n      <legend>Location</legend>\n      <input type="text" autocomplete="off" name="ORDER_PROP_6" :value="LOCATION" class="dropdown-field" placeholder="\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043D\u0430\u0437\u0432\u0430\u043D\u0438\u0435 ..." wfd-invisible="true" style="display: none;">\n    </fieldset>\n\n    <hr>\n\n    <fieldset>\n      <legend>Paysystem</legend>\n      <ControlComponent v-if="controls.paysystem" :control="controls.paysystem" @input="input" @hints="hints" />\n    </fieldset>\n\n    <hr>\n\n    <fieldset>\n      <legend>Order props</legend>\n      <hr>\n      <div v-for="control in controls.orderProps" :key="control.id">\n        <ControlComponent :control="control" @input="input" @hints="hints" />\n        <hr>\n      </div>\n      <textarea id="orderDescription" cols="4" class="form-control bx-soa-customer-textarea bx-ios-fix" name="ORDER_DESCRIPTION"></textarea>\n    </fieldset>\n\n    <hr>\n\n    <fieldset>\n      <legend>Hidden</legend>\n      <hr>\n      <div style="display: grid; gap: 16px; grid-template-columns: repeat(4, 1fr);">\n        <ControlComponent v-for="control in controls.hidden" :key="control.id" :control="control" @input="input" @hints="hints" />\n      </div>\n    </fieldset>\n\n    <hr>\n    \n  </form>\n  ',
+    computed: _objectSpread(
+      _objectSpread(
+        {},
+        ui_vue3_pinia.mapState(orderStore, ['OPTIONS', 'controls'])
+      ),
+      {},
+      {
+        LOCATION: function LOCATION() {
+          if (this.OPTIONS.locations) {
+            return Object.values(this.OPTIONS.locations)[0].lastValue;
+          }
+        },
       }
-    })
+    ),
+    methods: _objectSpread(
+      _objectSpread(
+        {},
+        ui_vue3_pinia.mapActions(orderStore, [
+          'changeControlValue',
+          'setOptions',
+        ])
+      ),
+      {},
+      {
+        input: function input(attrs) {
+          this.changeControlValue(attrs);
+        },
+        changeDelivery: function changeDelivery() {
+          this.ajax();
+        },
+        changePaysystem: function changePaysystem() {
+          this.ajax();
+        },
+        makeData: function makeData(data) {
+          //pay systems
+          this.PAY_SYSTEM_LIST = Object.values(data.PAY_SYSTEM).map(function (
+            pay
+          ) {
+            return {
+              ID: pay.ID,
+              SORT: pay.SORT,
+              NAME: pay.NAME,
+              DESCRIPTION: pay.DESCRIPTION,
+              CHECKED: pay.CHECKED,
+              SRC: pay.PSA_LOGOTIP_SRC,
+            };
+          });
+
+          //deliveries
+          this.DELIVERY_LIST = Object.values(data.DELIVERY).map(function (del) {
+            return {
+              ID: del.ID,
+              SORT: del.SORT,
+              NAME: del.NAME,
+              DESCRIPTION: del.DESCRIPTION,
+              CHECKED: del.CHECKED,
+              SRC: del.LOGOTIP_SRC,
+              PRICE_FORMATED: del.PRICE_FORMATED,
+              FIELD_NAME: del.FIELD_NAME,
+            };
+          });
+
+          //basket
+          this.BASKET = Object.values(data.GRID.ROWS).map(function (product) {
+            return {
+              ID: product.data.ID,
+              SORT: product.data.SORT,
+              NAME: product.data.NAME,
+              PROPERTIES: Object.values(product.data.PROPS),
+              QUANTITY: product.data.QUANTITY,
+              MEASURE: product.data.MEASURE_TEXT,
+              SRC: product.data.DETAIL_PICTURE_SRC_ORIGINAL,
+              BASE_PRICE: product.data.BASE_PRICE,
+              BASE_PRICE_FORMATED: product.data.BASE_PRICE_FORMATED,
+              PRICE: product.data.PRICE,
+              //price with discount
+              PRICE_FORMATED: product.data.PRICE_FORMATED,
+              //price with discount
+              DETAIL_PAGE_URL: product.data.DETAIL_PAGE_URL,
+              DISCOUNT_PRICE: product.data.DISCOUNT_PRICE,
+              DESCRIPTION: product.data.PREVIEW_TEXT,
+              SUM_BASE_FORMATED: product.data.SUM_BASE_FORMATED,
+              SUM_FORMATED: product.data.SUM,
+            };
+          });
+
+          //properties
+          this.PROPERTIES = Object.values(data.ORDER_PROP.properties);
+          this.DELIVERY_ERRORS = data.ERROR;
+          this.PAY_SYSTEM_ERRORS = data.ERROR;
+          this.PERSON_TYPE = Object.values(data.PERSON_TYPE);
+          this.PRODUCTS_BASE_PRICE_FORMATED = data.TOTAL.PRICE_WITHOUT_DISCOUNT;
+          this.PRODUCTS_PRICE_FORMATED = data.TOTAL.ORDER_PRICE_FORMATED;
+          this.PRODUCTS_DISCOUNT_FORMATED = data.TOTAL.DISCOUNT_PRICE_FORMATED;
+          this.DELIVERY_BASE_PRICE_FORMATED =
+            data.TOTAL.DELIVERY_PRICE_FORMATED;
+          this.DISCOUNT_PRICE_FORMATED = data.TOTAL.DISCOUNT_PRICE_FORMATED;
+          this.SUM_BASE_FORMATED = data.TOTAL.PRICE_WITHOUT_DISCOUNT;
+          this.SUM_FORMATED = data.TOTAL.ORDER_PRICE_FORMATED;
+        },
+        endLoader: function endLoader() {
+          console.log('endLoader');
+        },
+        getData: function getData() {
+          var order = {};
+          new FormData(this.$refs.form).forEach(function (value, key) {
+            return (order[key] = value);
+          });
+          return {
+            order: order,
+            sessid: this.sessid,
+            via_ajax: 'Y',
+            SITE_ID: this.OPTIONS.siteID,
+            signedParamsString: this.OPTIONS.signedParamsString,
+            'soa-action': 'refreshOrderAjax',
+          };
+        },
+        ajax: function ajax() {
+          var _this = this;
+          BX.ajax({
+            method: 'POST',
+            dataType: 'json',
+            url: this.OPTIONS.ajaxUrl,
+            data: this.getData(),
+            onsuccess: function onsuccess(result) {
+              _this.setOptions({
+                options: result,
+              });
+            },
+            onfailure: function onfailure(error) {},
+          });
+        },
+      }
+    ),
   };
 
-  function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-  function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
-  var _store = /*#__PURE__*/new WeakMap();
-  var _rootNode = /*#__PURE__*/new WeakMap();
-  var _application = /*#__PURE__*/new WeakMap();
-  var OrderMake = /*#__PURE__*/function () {
+  function _classPrivateFieldInitSpec(obj, privateMap, value) {
+    _checkPrivateRedeclaration(obj, privateMap);
+    privateMap.set(obj, value);
+  }
+  function _checkPrivateRedeclaration(obj, privateCollection) {
+    if (privateCollection.has(obj)) {
+      throw new TypeError(
+        'Cannot initialize the same private elements twice on an object'
+      );
+    }
+  }
+  var _store = /*#__PURE__*/ new WeakMap();
+  var _rootNode = /*#__PURE__*/ new WeakMap();
+  var _application = /*#__PURE__*/ new WeakMap();
+  var OrderMake = /*#__PURE__*/ (function () {
     function OrderMake(rootNode, options) {
       babelHelpers.classCallCheck(this, OrderMake);
       _classPrivateFieldInitSpec(this, _store, {
         writable: true,
-        value: void 0
+        value: void 0,
       });
       _classPrivateFieldInitSpec(this, _rootNode, {
         writable: true,
-        value: void 0
+        value: void 0,
       });
       _classPrivateFieldInitSpec(this, _application, {
         writable: true,
-        value: void 0
+        value: void 0,
       });
-      babelHelpers.classPrivateFieldSet(this, _store, ui_vue3_pinia.createPinia());
-      babelHelpers.classPrivateFieldSet(this, _rootNode, document.querySelector(rootNode));
+      babelHelpers.classPrivateFieldSet(
+        this,
+        _store,
+        ui_vue3_pinia.createPinia()
+      );
+      babelHelpers.classPrivateFieldSet(
+        this,
+        _rootNode,
+        document.querySelector(rootNode)
+      );
       this.options = options;
     }
-    babelHelpers.createClass(OrderMake, [{
-      key: "run",
-      value: function run() {
-        var self = this;
-        babelHelpers.classPrivateFieldSet(this, _application, ui_vue3.BitrixVue.createApp({
-          name: 'Order Application',
-          components: {
-            Application: Application
-          },
-          template: '<Application/>',
-          mounted: function mounted() {
-            if (self.options && babelHelpers["typeof"](self.options) === 'object') {
-              Object.keys(self.options).forEach(function (key) {
-                dataStore()[key] = self.options[key] || '';
-              });
-            }
-          }
-        }));
-        babelHelpers.classPrivateFieldGet(this, _application).use(babelHelpers.classPrivateFieldGet(this, _store));
-        babelHelpers.classPrivateFieldGet(this, _application).mount(babelHelpers.classPrivateFieldGet(this, _rootNode));
-      }
-    }, {
-      key: "initStorageBeforeStartApplication",
-      value: function initStorageBeforeStartApplication() {
-        ui_vue3_pinia.setActivePinia(babelHelpers.classPrivateFieldGet(this, _store));
-      }
-    }, {
-      key: "getTableStore",
-      value: function getTableStore() {
-        return tableStore;
-      }
-    }]);
+    babelHelpers.createClass(OrderMake, [
+      {
+        key: 'run',
+        value: function run() {
+          var self = this;
+          babelHelpers.classPrivateFieldSet(
+            this,
+            _application,
+            ui_vue3.BitrixVue.createApp({
+              name: 'Order Application',
+              components: {
+                Application: Application,
+              },
+              template: '<Application/>',
+              mounted: function mounted() {
+                if (
+                  self.options &&
+                  babelHelpers['typeof'](self.options) === 'object'
+                ) {
+                  Object.keys(self.options).forEach(function (key) {
+                    orderStore()[key] = self.options[key] || '';
+                  });
+                }
+                orderStore().createControls();
+              },
+            })
+          );
+          babelHelpers
+            .classPrivateFieldGet(this, _application)
+            .use(babelHelpers.classPrivateFieldGet(this, _store));
+          babelHelpers
+            .classPrivateFieldGet(this, _application)
+            .mount(babelHelpers.classPrivateFieldGet(this, _rootNode));
+        },
+      },
+      {
+        key: 'initStorageBeforeStartApplication',
+        value: function initStorageBeforeStartApplication() {
+          ui_vue3_pinia.setActivePinia(
+            babelHelpers.classPrivateFieldGet(this, _store)
+          );
+        },
+      },
+      {
+        key: 'getOrderStore',
+        value: function getOrderStore() {
+          return orderStore;
+        },
+      },
+    ]);
     return OrderMake;
-  }();
+  })();
 
   exports.OrderMake = OrderMake;
-
-}((this.BX = this.BX || {}),BX,BX,BX));
-//# sourceMappingURL=application.bundle.js.map
+})((this.BX = this.BX || {}), BX.Vue3, BX, BX.Controls, BX.Vue3.Pinia); //# sourceMappingURL=application.bundle.js.map

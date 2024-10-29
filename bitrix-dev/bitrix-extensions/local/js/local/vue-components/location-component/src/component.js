@@ -22,11 +22,13 @@ export const LocationComponent = {
   template: `
     <ControlHint :key="control.id" :control="control" @input="input" @hints="hints" />
 	`,
-  emits: ['input', 'hints'],
+  emits: ['inputLocation', 'hints'],
   computed: {},
   watch: {},
   methods: {
-    input() {},
+    input({ value }) {
+      this.$emit('inputLocation', { value });
+    },
     hints() {
       let result = {
         status: 'success',

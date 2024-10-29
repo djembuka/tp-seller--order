@@ -23,11 +23,16 @@
       ControlHint: local_vueComponents_controlHint.ControlHint
     },
     template: "\n    <ControlHint :key=\"control.id\" :control=\"control\" @input=\"input\" @hints=\"hints\" />\n\t",
-    emits: ['input', 'hints'],
+    emits: ['inputLocation', 'hints'],
     computed: {},
     watch: {},
     methods: {
-      input: function input() {},
+      input: function input(_ref) {
+        var value = _ref.value;
+        this.$emit('inputLocation', {
+          value: value
+        });
+      },
       hints: function hints() {
         var result = {
           status: 'success',
