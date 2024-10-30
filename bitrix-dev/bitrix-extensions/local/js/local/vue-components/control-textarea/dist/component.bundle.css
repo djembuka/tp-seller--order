@@ -1,0 +1,137 @@
+.twpx-form-control--textarea {
+  position: relative;
+  margin-bottom: 16px;
+  width: 100%;
+}
+.twpx-form-control--textarea.twpx-form-control--active
+  .twpx-form-control__label {
+  -webkit-transform: translateY(5px);
+  -ms-transform: translateY(5px);
+      transform: translateY(5px);
+  font-size: 9px;
+  color: var(--twpx-control-color);
+}
+.twpx-form-control--textarea .twpx-form-control__disabled-icon {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+  z-index: 10;
+}
+.twpx-form-control--textarea .twpx-form-control__label {
+  position: absolute;
+  top: 0;
+  left: 14px;
+  margin: 0;
+  padding: 0;
+  color: var(--twpx-control-color);
+  font-size: 14px;
+  -webkit-transition: -webkit-transform 0.2s ease-out,
+    -webkit-font-size 0.2s ease-out;
+  -webkit-transition: font-size 0.2s ease-out, -webkit-transform 0.2s ease-out;
+  transition: font-size 0.2s ease-out, -webkit-transform 0.2s ease-out;
+  -o-transition: transform 0.2s ease-out, font-size 0.2s ease-out;
+  transition: transform 0.2s ease-out, font-size 0.2s ease-out;
+  transition: transform 0.2s ease-out, font-size 0.2s ease-out, -webkit-transform 0.2s ease-out;
+  -webkit-transform: translateY(14px);
+  -ms-transform: translateY(14px);
+      transform: translateY(14px);
+  pointer-events: none;
+  line-height: 1.1;
+}
+.twpx-form-control--textarea.twpx-form-control--invalid
+  .twpx-form-control__label {
+  color: var(--twpx-control-invalid-color);
+}
+.twpx-form-control--textarea.twpx-form-control--disabled
+  .twpx-form-control__label {
+  color: var(--twpx-control-color);
+  opacity: 0.3;
+}
+.twpx-form-control--textarea .twpx-form-control__textarea {
+  display: block !important;
+  width: 100%;
+  margin: 0 !important;
+  padding: 14px !important;
+  color: var(--twpx-control-color);
+  background-color: var(--twpx-control-background);
+  border: 1px solid var(--twpx-control-background) !important;
+  border-radius: 3px !important;
+  -webkit-transition: border-color 0.3s ease;
+  -o-transition: border-color 0.3s ease;
+  transition: border-color 0.3s ease;
+  -webkit-box-shadow: none !important;
+          box-shadow: none !important;
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
+}
+.twpx-form-control--textarea.twpx-form-control--focused
+  .twpx-form-control__textarea,
+.twpx-form-control--textarea .twpx-form-control__textarea:hover {
+  outline: none;
+  border-color: var(--twpx-control-border) !important;
+}
+.twpx-form-control--textarea .twpx-form-control__textarea-content {
+  color: var(--twpx-control-color) !important;
+  border: none !important;
+  padding: 0 !important;
+  outline: none !important;
+  -webkit-box-shadow: none !important;
+          box-shadow: none !important;
+  background-color: transparent !important;
+  display: block;
+  width: 100%;
+  height: 96px;
+  font-family: 'Open Sans', sans-serif !important;
+  font-size: 14px !important;
+  overflow: auto;
+  scrollbar-color: #ccc #fff;
+  scrollbar-width: thin;
+  resize: none;
+}
+.twpx-form-control--textarea
+  .twpx-form-control__textarea-content::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+  background-color: #fff;
+}
+.twpx-form-control--textarea
+  .twpx-form-control__textarea-content::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 2px;
+}
+.twpx-form-control--textarea
+  .twpx-form-control__textarea-content::-webkit-scrollbar-thumb:hover {
+  background-color: #c0c0c0;
+}
+.twpx-form-control--textarea .twpx-form-control__textarea-content:focus,
+.twpx-form-control--textarea .twpx-form-control__textarea-content:hover {
+  outline: none;
+}
+.twpx-form-control--textarea.twpx-form-control--invalid
+  .twpx-form-control__textarea {
+  background-color: var(--twpx-control-invalid-background);
+  border-color: var(--twpx-control-invalid-border) !important;
+  outline: none;
+  color: var(--twpx-control-invalid-color);
+}
+.twpx-form-control--textarea.twpx-form-control--disabled
+  .twpx-form-control__textarea,
+.twpx-form-control--textarea.twpx-form-control--disabled
+  .twpx-form-control__textarea-content {
+  color: var(--twpx-control-disabled-color);
+  pointer-events: none;
+  background-color: var(--twpx-control-disabled-background);
+  border: 1px solid var(--twpx-control-disabled-background) !important;
+}
+.twpx-form-control--textarea .twpx-form-control__warning,
+.twpx-form-control--textarea .twpx-form-control__hint {
+  font-size: 9pt;
+  margin: 5px;
+  line-height: 1.1;
+}
+.twpx-form-control--textarea .twpx-form-control__warning {
+  color: var(--twpx-control-warning-color);
+}

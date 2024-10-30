@@ -3,7 +3,7 @@
   margin-bottom: 16px;
 }
 .twpx-form-control--radio .twpx-form-control-hint {
-  color: #2d3142;
+  color: var(--twpx-control-color);
   font-size: 9px;
   margin: 8px 0 0 14px;
   line-height: 1.2;
@@ -97,7 +97,7 @@
   .twpx-form-control__radio
   [type='radio']:not(:checked)
   + span:before {
-  background-color: #f5f7f8;
+  background-color: var(--twpx-control-background);
 }
 .twpx-form-control--radio
   .twpx-form-control__radio:hover
@@ -136,7 +136,7 @@
   .twpx-form-control__radio
   [type='radio'].with-gap:checked
   + span:after {
-  background-color: #2d3142;
+  background-color: var(--twpx-control-color);
 }
 
 .twpx-form-control--radio
@@ -147,7 +147,7 @@
   .twpx-form-control__radio
   [type='radio'].with-gap:checked
   + span:after {
-  background-color: #2d3142;
+  background-color: var(--twpx-control-color);
 }
 
 .twpx-form-control--radio

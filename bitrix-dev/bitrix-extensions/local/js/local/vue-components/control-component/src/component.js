@@ -1,4 +1,7 @@
+import './component.css';
+
 import { ControlText } from 'local.vue-components.control-text';
+import { ControlTextarea } from 'local.vue-components.control-textarea';
 import { ControlHint } from 'local.vue-components.control-hint';
 import { ControlSelectDropdown } from 'local.vue-components.control-select-dropdown';
 import { ControlSelectRadio } from 'local.vue-components.control-select-radio';
@@ -18,6 +21,7 @@ export const ControlComponent = {
   },
   components: {
     ControlText,
+    ControlTextarea,
     ControlHint,
     ControlSelectDropdown,
     ControlSelectRadio,

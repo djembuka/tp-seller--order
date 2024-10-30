@@ -1,6 +1,6 @@
 /* eslint-disable */
 this.BX = this.BX || {};
-(function (exports,local_vueComponents_controlText,local_vueComponents_controlHint,local_vueComponents_controlSelectDropdown,local_vueComponents_controlSelectRadio,local_vueComponents_controlDatepicker,local_vueComponents_controlDateSingle,local_vueComponents_controlDateRange) {
+(function (exports,local_vueComponents_controlText,local_vueComponents_controlTextarea,local_vueComponents_controlHint,local_vueComponents_controlSelectDropdown,local_vueComponents_controlSelectRadio,local_vueComponents_controlDatepicker,local_vueComponents_controlDateSingle,local_vueComponents_controlDateRange) {
   'use strict';
 
   var ControlComponent = {
@@ -13,6 +13,7 @@ this.BX = this.BX || {};
     },
     components: {
       ControlText: local_vueComponents_controlText.ControlText,
+      ControlTextarea: local_vueComponents_controlTextarea.ControlTextarea,
       ControlHint: local_vueComponents_controlHint.ControlHint,
       ControlSelectDropdown: local_vueComponents_controlSelectDropdown.ControlSelectDropdown,
       ControlSelectRadio: local_vueComponents_controlSelectRadio.ControlSelectRadio,
@@ -68,5 +69,5 @@ this.BX = this.BX || {};
 
   exports.ControlComponent = ControlComponent;
 
-}((this.BX.Controls = this.BX.Controls || {}),BX.Controls,BX.Controls,BX,BX.Controls,BX,BX,BX));
+}((this.BX.Controls = this.BX.Controls || {}),BX.Controls,BX.Controls,BX.Controls,BX,BX.Controls,BX,BX,BX));
 //# sourceMappingURL=component.bundle.js.map

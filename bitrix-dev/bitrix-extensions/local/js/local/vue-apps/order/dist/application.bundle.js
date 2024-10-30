@@ -4,6 +4,7 @@
   ui_vue3,
   local_vueComponents_locationComponent,
   local_vueComponents_controlComponent,
+  local_vueComponents_loaderCircle,
   ui_vue3_pinia
 ) {
   'use strict';
@@ -13,9 +14,57 @@
       return {
         OPTIONS: {},
         controls: {},
+        result: {},
+        loading: false,
+        sessid: window.BX.bitrix_sessid(),
       };
     },
+    getters: {
+      formData: function formData(state) {
+        var result = {};
+        Object.entries(state.controls).forEach(function (entry) {
+          entry[1].forEach(function (control) {
+            if (
+              entry[0] === 'location' &&
+              babelHelpers['typeof'](control.value) === 'object'
+            ) {
+              result[control.name] = control.value.id;
+            } else {
+              result[control.name] = control.value;
+            }
+          });
+        });
+        return result;
+      },
+    },
     actions: {
+      loadData: function loadData() {
+        this.loading = true;
+        var self = this;
+        BX.ajax({
+          method: 'POST',
+          dataType: 'json',
+          url: this.OPTIONS.ajaxUrl,
+          data: this.getData(),
+          onsuccess: function onsuccess(result) {
+            self.loading = false;
+            self.setLoadResult({
+              result: result,
+            });
+          },
+          onfailure: function onfailure(error) {},
+        });
+      },
+      getData: function getData() {
+        return {
+          order: this.formData,
+          sessid: this.sessid,
+          via_ajax: 'Y',
+          SITE_ID: this.OPTIONS.siteID,
+          signedParamsString: this.OPTIONS.signedParamsString,
+          'soa-action': 'refreshOrderAjax',
+        };
+      },
       changeControlValue: function changeControlValue(_ref) {
         var control = _ref.control,
           value = _ref.value,
@@ -23,6 +72,7 @@
         switch (control.property) {
           case 'text':
           case 'textarea':
+          case 'hint':
             this.changeTextControlValue({
               control: control,
               value: value,
@@ -79,94 +129,114 @@
       changeSelectRadioValue: function changeSelectRadioValue(_ref3) {
         var control = _ref3.control,
           value = _ref3.value;
-        console.log(control, value);
         control.value = value;
       },
-      setOptions: function setOptions(_ref4) {
-        var options = _ref4.options;
-        this.OPTIONS = options;
+      setLoadResult: function setLoadResult(_ref4) {
+        var result = _ref4.result;
+        this.result = result;
+        this.createControls(this.result.order);
       },
       createControls: function createControls() {
+        var data =
+          arguments.length > 0 && arguments[0] !== undefined
+            ? arguments[0]
+            : this.OPTIONS.result;
+        //location
+        var location = [
+          {
+            property: 'hint',
+            id: 'twpxOrderLocationId',
+            name: 'ORDER_PROP_6',
+            value: '',
+            count: 3,
+            action: 'twinpx:location-hint',
+            required: false,
+            disabled: false,
+          },
+        ];
+
         //person type
-        var personType = {
-          property: 'select',
-          type: 'radio',
-          id: 'radioID',
-          name: 'PERSON_TYPE',
-          label: 'Person types',
-        };
-        if (this.OPTIONS.result) {
-          personType.options = Object.values(
-            this.OPTIONS.result.PERSON_TYPE
-          ).map(function (p) {
+        var personType = [
+          {
+            property: 'select',
+            type: 'radio',
+            id: 'radioID',
+            name: 'PERSON_TYPE',
+            label: 'Person types',
+          },
+        ];
+        if (data) {
+          personType[0].options = Object.values(data.PERSON_TYPE).map(function (
+            p
+          ) {
             return {
               label: p.NAME,
               code: p.ID,
             };
           });
         }
-        personType.value = Object.values(this.OPTIONS.result.PERSON_TYPE).find(
-          function (p) {
-            return p.CHECKED === 'Y';
-          }
-        ).ID;
+        personType[0].value = Object.values(data.PERSON_TYPE).find(function (
+          p
+        ) {
+          return p.CHECKED === 'Y';
+        }).ID;
 
         //delivery
-        var delivery = {
-          property: 'select',
-          type: 'radio',
-          id: 'ID_DELIVERY_ID_',
-          name: 'DELIVERY_ID',
-          label: 'Delivery',
-        };
-        if (this.OPTIONS.result) {
-          delivery.options = Object.values(this.OPTIONS.result.DELIVERY).map(
-            function (d) {
-              return {
-                label: d.NAME,
-                code: d.ID,
-              };
-            }
-          );
+        var delivery = [
+          {
+            property: 'select',
+            type: 'radio',
+            id: 'ID_DELIVERY_ID_',
+            name: 'DELIVERY_ID',
+            label: 'Delivery',
+          },
+        ];
+        if (data) {
+          delivery[0].options = Object.values(data.DELIVERY).map(function (d) {
+            return {
+              label: d.NAME,
+              code: d.ID,
+            };
+          });
         }
-        delivery.value = Object.values(this.OPTIONS.result.DELIVERY).find(
-          function (d) {
-            return d.CHECKED === 'Y';
-          }
-        ).ID;
+        delivery[0].value = Object.values(data.DELIVERY).find(function (d) {
+          return d.CHECKED === 'Y';
+        }).ID;
 
         //paysystem
-        var paysystem = {
-          property: 'select',
-          type: 'radio',
-          id: 'ID_PAY_SYSTEM_ID_',
-          name: 'PAY_SYSTEM_ID',
-          label: 'Pay system',
-        };
-        if (this.OPTIONS.result) {
-          paysystem.options = Object.values(this.OPTIONS.result.PAY_SYSTEM).map(
-            function (p) {
-              return {
-                label: p.NAME,
-                code: p.ID,
-              };
-            }
-          );
-        }
-        paysystem.value = Object.values(this.OPTIONS.result.PAY_SYSTEM).find(
-          function (p) {
-            return p.CHECKED === 'Y';
-          }
-        ).ID;
-
-        //order prors
-        var orderProps = [];
-        if (this.OPTIONS.result) {
-          orderProps = this.OPTIONS.result.ORDER_PROP.properties.map(function (
+        var paysystem = [
+          {
+            property: 'select',
+            type: 'radio',
+            id: 'ID_PAY_SYSTEM_ID_',
+            name: 'PAY_SYSTEM_ID',
+            label: 'Pay system',
+          },
+        ];
+        if (data) {
+          paysystem[0].options = Object.values(data.PAY_SYSTEM).map(function (
             p
           ) {
             return {
-              property: 'text',
+              label: p.NAME,
+              code: p.ID,
+            };
+          });
+        }
+        paysystem[0].value = Object.values(data.PAY_SYSTEM).find(function (p) {
+          return p.CHECKED === 'Y';
+        }).ID;
+
+        //order prors
+        var orderProps = [];
+        if (data) {
+          orderProps = data.ORDER_PROP.properties.map(function (p) {
+            var property = 'text';
+            if (p.IS_ADDRESS === 'Y') {
+              property = 'textarea';
+            }
+            return {
+              property: property,
               id: p.ID,
               name: p.CODE,
               label: p.NAME,
@@ -219,8 +289,70 @@
           delivery: delivery,
           paysystem: paysystem,
           orderProps: orderProps,
+          location: location,
         };
-        console.log(this.controls);
+      },
+      loadLocationHints: function loadLocationHints(_ref5) {
+        var control = _ref5.control,
+          action = _ref5.action;
+        var callback =
+          arguments.length > 1 && arguments[1] !== undefined
+            ? arguments[1]
+            : function () {};
+        control.loading = true;
+        var data = {
+          select: {
+            1: 'CODE',
+            2: 'TYPE_ID',
+            VALUE: 'ID',
+            DISPLAY: 'NAME.NAME',
+          },
+          additionals: {
+            1: 'PATH',
+          },
+          filter: {
+            '=PHRASE': control.value.forEach
+              ? control.value.value
+              : control.value,
+            '=NAME.LANGUAGE_ID': 'ru',
+            '=SITE_ID': 's1',
+          },
+          version: '2',
+          PAGE_SIZE: '10',
+          PAGE: '0',
+        };
+        BX.ajax({
+          method: 'POST',
+          dataType: 'json',
+          url: '/bitrix/components/bitrix/sale.location.selector.search/get.php',
+          data: data,
+          onsuccess: function onsuccess(result) {
+            control.loading = false;
+            resultFn(result);
+          },
+          onfailure: function onfailure(error) {
+            console.log(error);
+          },
+        });
+        function resultFn(result) {
+          if (!result.data || !result.data.ITEMS || !result.data.ITEMS.map) {
+            return;
+          }
+          control.hints = result.data.ITEMS.map(function (obj) {
+            return {
+              id: obj.CODE,
+              value: obj.DISPLAY,
+            };
+          });
+          if (callback) {
+            callback();
+          }
+        }
+      },
+      setLocationHints: function setLocationHints(_ref6) {
+        var control = _ref6.control,
+          value = _ref6.value;
+        control.hints = value;
       },
     },
   });
@@ -263,23 +395,22 @@
     data: function data() {
       return {
         locations: undefined,
-        order: undefined,
-        sessid: window.BX.bitrix_sessid(),
       };
     },
     components: {
       LocationComponent:
         local_vueComponents_locationComponent.LocationComponent,
       ControlComponent: local_vueComponents_controlComponent.ControlComponent,
+      LoaderCircle: local_vueComponents_loaderCircle.LoaderCircle,
     },
     // language=Vue
 
     template:
-      '\n  <form id="bx-soa-order-form" ref="form">\n\n    <fieldset>\n      <legend>Person type</legend>\n      <ControlComponent v-if="controls.personType" :control="controls.personType" @input="input" @hints="hints" />\n    </fieldset>\n\n    <hr>\n\n    <fieldset>\n      <legend>Delivery</legend>\n      <ControlComponent v-if="controls.delivery" :control="controls.delivery" @input="input" @hints="hints" />\n    </fieldset>\n\n    <hr>\n\n    <fieldset>\n      <legend>Location</legend>\n      <input type="text" autocomplete="off" name="ORDER_PROP_6" :value="LOCATION" class="dropdown-field" placeholder="\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043D\u0430\u0437\u0432\u0430\u043D\u0438\u0435 ..." wfd-invisible="true" style="display: none;">\n    </fieldset>\n\n    <hr>\n\n    <fieldset>\n      <legend>Paysystem</legend>\n      <ControlComponent v-if="controls.paysystem" :control="controls.paysystem" @input="input" @hints="hints" />\n    </fieldset>\n\n    <hr>\n\n    <fieldset>\n      <legend>Order props</legend>\n      <hr>\n      <div v-for="control in controls.orderProps" :key="control.id">\n        <ControlComponent :control="control" @input="input" @hints="hints" />\n        <hr>\n      </div>\n      <textarea id="orderDescription" cols="4" class="form-control bx-soa-customer-textarea bx-ios-fix" name="ORDER_DESCRIPTION"></textarea>\n    </fieldset>\n\n    <hr>\n\n    <fieldset>\n      <legend>Hidden</legend>\n      <hr>\n      <div style="display: grid; gap: 16px; grid-template-columns: repeat(4, 1fr);">\n        <ControlComponent v-for="control in controls.hidden" :key="control.id" :control="control" @input="input" @hints="hints" />\n      </div>\n    </fieldset>\n\n    <hr>\n    \n  </form>\n  ',
+      '\n  <LoaderCircle :show="loading" />\n  <form id="bx-soa-order-form" ref="form">\n\n    <fieldset>\n      <legend>Person type</legend>\n      <div v-for="control in controls.personType" :key="control.id">\n        <ControlComponent :control="control" @input="input" @hints="hints" />\n      </div>\n    </fieldset>\n\n    <hr>\n\n    <fieldset>\n      <legend>Delivery</legend>\n      <div v-for="control in controls.delivery" :key="control.id">\n        <ControlComponent  :control="control" @input="input" @hints="hints" />\n      </div>\n    </fieldset>\n\n    <hr>\n\n    <fieldset>\n      <legend>Location</legend>\n      <hr>\n      <div v-for="control in controls.location" :key="control.id">\n        <LocationComponent :control="control" @input="input" @hints="locationHints" />\n      </div>\n    </fieldset>\n\n    <hr>\n\n    <fieldset>\n      <legend>Paysystem</legend>\n      <div v-for="control in controls.paysystem" :key="control.id">\n        <ControlComponent :control="control" @input="input" @hints="hints" />\n      </div>\n    </fieldset>\n\n    <hr>\n\n    <fieldset>\n      <legend>Order props</legend>\n      <hr>\n      <div v-for="(control, index) in controls.orderProps" :key="control.id">\n        <ControlComponent :control="control" @input="input" @hints="hints" />\n        <hr v-if="index + 1 < controls.orderProps.length">\n      </div>\n    </fieldset>\n\n    <hr>\n\n    <fieldset>\n      <legend>Comment</legend>\n      <ControlComponent :control="{\n            property: \'textarea\',\n            id: \'orderDescription\',\n            name: \'ORDER_DESCRIPTION\',\n            label: \'Comment\',\n            value: \'\',\n            required: false,\n            disabled: false,\n          }" @input="input" @hints="hints" />\n    </fieldset>\n\n    <hr>\n\n    <fieldset>\n      <legend>Hidden</legend>\n      <hr>\n      <div style="display: grid; gap: 16px; grid-template-columns: repeat(4, 1fr);">\n        <ControlComponent v-for="control in controls.hidden" :key="control.id" :control="control" @input="input" @hints="hints" />\n      </div>\n    </fieldset>\n\n    <hr>\n    \n  </form>\n  ',
     computed: _objectSpread(
       _objectSpread(
         {},
-        ui_vue3_pinia.mapState(orderStore, ['OPTIONS', 'controls'])
+        ui_vue3_pinia.mapState(orderStore, ['OPTIONS', 'controls', 'loading'])
       ),
       {},
       {
@@ -295,118 +426,42 @@
         {},
         ui_vue3_pinia.mapActions(orderStore, [
           'changeControlValue',
-          'setOptions',
+          'loadData',
+          'loadLocationHints',
+          'setLocationHints',
         ])
       ),
       {},
       {
         input: function input(attrs) {
           this.changeControlValue(attrs);
-        },
-        changeDelivery: function changeDelivery() {
-          this.ajax();
-        },
-        changePaysystem: function changePaysystem() {
-          this.ajax();
-        },
-        makeData: function makeData(data) {
-          //pay systems
-          this.PAY_SYSTEM_LIST = Object.values(data.PAY_SYSTEM).map(function (
-            pay
+          if (
+            attrs.control.type === 'radio' ||
+            (attrs.control.property === 'hint' &&
+              babelHelpers['typeof'](attrs.control.value) === 'object')
           ) {
-            return {
-              ID: pay.ID,
-              SORT: pay.SORT,
-              NAME: pay.NAME,
-              DESCRIPTION: pay.DESCRIPTION,
-              CHECKED: pay.CHECKED,
-              SRC: pay.PSA_LOGOTIP_SRC,
-            };
-          });
-
-          //deliveries
-          this.DELIVERY_LIST = Object.values(data.DELIVERY).map(function (del) {
-            return {
-              ID: del.ID,
-              SORT: del.SORT,
-              NAME: del.NAME,
-              DESCRIPTION: del.DESCRIPTION,
-              CHECKED: del.CHECKED,
-              SRC: del.LOGOTIP_SRC,
-              PRICE_FORMATED: del.PRICE_FORMATED,
-              FIELD_NAME: del.FIELD_NAME,
-            };
-          });
-
-          //basket
-          this.BASKET = Object.values(data.GRID.ROWS).map(function (product) {
-            return {
-              ID: product.data.ID,
-              SORT: product.data.SORT,
-              NAME: product.data.NAME,
-              PROPERTIES: Object.values(product.data.PROPS),
-              QUANTITY: product.data.QUANTITY,
-              MEASURE: product.data.MEASURE_TEXT,
-              SRC: product.data.DETAIL_PICTURE_SRC_ORIGINAL,
-              BASE_PRICE: product.data.BASE_PRICE,
-              BASE_PRICE_FORMATED: product.data.BASE_PRICE_FORMATED,
-              PRICE: product.data.PRICE,
-              //price with discount
-              PRICE_FORMATED: product.data.PRICE_FORMATED,
-              //price with discount
-              DETAIL_PAGE_URL: product.data.DETAIL_PAGE_URL,
-              DISCOUNT_PRICE: product.data.DISCOUNT_PRICE,
-              DESCRIPTION: product.data.PREVIEW_TEXT,
-              SUM_BASE_FORMATED: product.data.SUM_BASE_FORMATED,
-              SUM_FORMATED: product.data.SUM,
-            };
-          });
-
-          //properties
-          this.PROPERTIES = Object.values(data.ORDER_PROP.properties);
-          this.DELIVERY_ERRORS = data.ERROR;
-          this.PAY_SYSTEM_ERRORS = data.ERROR;
-          this.PERSON_TYPE = Object.values(data.PERSON_TYPE);
-          this.PRODUCTS_BASE_PRICE_FORMATED = data.TOTAL.PRICE_WITHOUT_DISCOUNT;
-          this.PRODUCTS_PRICE_FORMATED = data.TOTAL.ORDER_PRICE_FORMATED;
-          this.PRODUCTS_DISCOUNT_FORMATED = data.TOTAL.DISCOUNT_PRICE_FORMATED;
-          this.DELIVERY_BASE_PRICE_FORMATED =
-            data.TOTAL.DELIVERY_PRICE_FORMATED;
-          this.DISCOUNT_PRICE_FORMATED = data.TOTAL.DISCOUNT_PRICE_FORMATED;
-          this.SUM_BASE_FORMATED = data.TOTAL.PRICE_WITHOUT_DISCOUNT;
-          this.SUM_FORMATED = data.TOTAL.ORDER_PRICE_FORMATED;
+            this.loadData();
+          }
         },
-        endLoader: function endLoader() {
-          console.log('endLoader');
-        },
-        getData: function getData() {
-          var order = {};
-          new FormData(this.$refs.form).forEach(function (value, key) {
-            return (order[key] = value);
-          });
-          return {
-            order: order,
-            sessid: this.sessid,
-            via_ajax: 'Y',
-            SITE_ID: this.OPTIONS.siteID,
-            signedParamsString: this.OPTIONS.signedParamsString,
-            'soa-action': 'refreshOrderAjax',
-          };
-        },
-        ajax: function ajax() {
-          var _this = this;
-          BX.ajax({
-            method: 'POST',
-            dataType: 'json',
-            url: this.OPTIONS.ajaxUrl,
-            data: this.getData(),
-            onsuccess: function onsuccess(result) {
-              _this.setOptions({
-                options: result,
+        locationHints: function locationHints(_ref) {
+          var type = _ref.type,
+            control = _ref.control,
+            action = _ref.action,
+            value = _ref.value;
+          switch (type) {
+            case 'get':
+              this.loadLocationHints({
+                control: control,
+                action: action,
               });
-            },
-            onfailure: function onfailure(error) {},
-          });
+              break;
+            case 'set':
+              this.setLocationHints({
+                control: control,
+                value: value,
+              });
+              break;
+          }
         },
       }
     ),
@@ -507,4 +562,11 @@
   })();
 
   exports.OrderMake = OrderMake;
-})((this.BX = this.BX || {}), BX.Vue3, BX, BX.Controls, BX.Vue3.Pinia); //# sourceMappingURL=application.bundle.js.map
+})(
+  (this.BX = this.BX || {}),
+  BX.Vue3,
+  BX,
+  BX.Controls,
+  BX.Loaders,
+  BX.Vue3.Pinia
+); //# sourceMappingURL=application.bundle.js.map

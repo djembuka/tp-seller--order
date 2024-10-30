@@ -1,0 +1,35 @@
+.vue-loader-circle {
+  --aas-primary-color: #074c86;
+  position: relative;
+  min-height: 70px;
+}
+.vue-loader-circle:after {
+  content: '';
+  position: absolute;
+  height: 70px;
+  width: 70px;
+  top: calc(50% - 35px);
+  right: calc(50% - 35px);
+  -webkit-animation: vue-loader-circle 1.3s infinite linear;
+  animation: vue-loader-circle 1.3s infinite linear;
+  border: 4px solid var(--aas-primary-color);
+  border-radius: 50%;
+  border-right-color: transparent;
+}
+
+@-webkit-keyframes vue-loader-circle {
+  0% {
+    -webkit-transform: rotate(0);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+  }
+}
+@keyframes vue-loader-circle {
+  0% {
+    transform: rotate(0);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

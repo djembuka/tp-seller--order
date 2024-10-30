@@ -166,3 +166,47 @@
 .twpx-form-control--hint .twpx-form-control__warning {
   color: #ff0000;
 }
+
+.twpx-form-control--hint .twpx-form-control__list {
+  position: absolute;
+  top: calc(100% + 1px + 3px);
+  left: 0;
+  width: 100%;
+  background: #fff;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.051);
+  border-radius: 0 0 5px 5px;
+  font-size: 0.88rem;
+  line-height: 1.2;
+  z-index: 11;
+}
+.twpx-form-control--hint .twpx-form-control__list__item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 20px;
+}
+.twpx-form-control--hint .twpx-form-control__list__item:hover,
+.twpx-form-control--hint .twpx-form-control__list__item.active {
+  background-color: #f0f5fc;
+  color: #5f7696;
+  cursor: pointer;
+}
+.twpx-form-control--hint .twpx-form-control__list__item:first-child {
+  margin-top: 0.5rem;
+}
+.twpx-form-control--hint .twpx-form-control__list__item:last-child {
+  margin-bottom: 0.5rem;
+}
+.twpx-form-control--hint .twpx-form-control__list__img {
+  width: 64px;
+  height: 64px;
+  border-radius: 51%;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  margin-right: 30px;
+}
+.twpx-form-control--hint .twpx-form-control__list__text {
+  font-size: 0.88rem;
+  pointer-events: none;
+}

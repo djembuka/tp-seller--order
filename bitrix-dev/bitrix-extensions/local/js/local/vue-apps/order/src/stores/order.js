@@ -4,12 +4,60 @@ export const orderStore = defineStore('order', {
   state: () => ({
     OPTIONS: {},
     controls: {},
+    result: {},
+    loading: false,
+    sessid: window.BX.bitrix_sessid(),
   }),
+  getters: {
+    formData(state) {
+      const result = {};
+
+      Object.entries(state.controls).forEach((entry) => {
+        entry[1].forEach((control) => {
+          if (entry[0] === 'location' && typeof control.value === 'object') {
+            result[control.name] = control.value.id;
+          } else {
+            result[control.name] = control.value;
+          }
+        });
+      });
+
+      return result;
+    },
+  },
   actions: {
+    loadData() {
+      this.loading = true;
+
+      const self = this;
+
+      BX.ajax({
+        method: 'POST',
+        dataType: 'json',
+        url: this.OPTIONS.ajaxUrl,
+        data: this.getData(),
+        onsuccess: (result) => {
+          self.loading = false;
+          self.setLoadResult({ result });
+        },
+        onfailure: (error) => {},
+      });
+    },
+    getData() {
+      return {
+        order: this.formData,
+        sessid: this.sessid,
+        via_ajax: 'Y',
+        SITE_ID: this.OPTIONS.siteID,
+        signedParamsString: this.OPTIONS.signedParamsString,
+        'soa-action': 'refreshOrderAjax',
+      };
+    },
     changeControlValue({ control, value, checked }) {
       switch (control.property) {
         case 'text':
         case 'textarea':
+        case 'hint':
           this.changeTextControlValue({ control, value });
           break;
         case 'multiselect':
@@ -40,86 +88,104 @@ export const orderStore = defineStore('order', {
       control.value = value;
     },
     changeSelectRadioValue({ control, value }) {
-      console.log(control, value);
       control.value = value;
     },
-    setOptions({ options }) {
-      this.OPTIONS = options;
+    setLoadResult({ result }) {
+      this.result = result;
+      this.createControls(this.result.order);
     },
-    createControls() {
+    createControls(data = this.OPTIONS.result) {
+      //location
+      const location = [
+        {
+          property: 'hint',
+          id: 'twpxOrderLocationId',
+          name: 'ORDER_PROP_6',
+          value: '',
+          count: 3,
+          action: 'twinpx:location-hint',
+          required: false,
+          disabled: false,
+        },
+      ];
+
       //person type
-      const personType = {
-        property: 'select',
-        type: 'radio',
-        id: 'radioID',
-        name: 'PERSON_TYPE',
-        label: 'Person types',
-      };
-      if (this.OPTIONS.result) {
-        personType.options = Object.values(this.OPTIONS.result.PERSON_TYPE).map(
-          (p) => {
-            return {
-              label: p.NAME,
-              code: p.ID,
-            };
-          }
-        );
+      const personType = [
+        {
+          property: 'select',
+          type: 'radio',
+          id: 'radioID',
+          name: 'PERSON_TYPE',
+          label: 'Person types',
+        },
+      ];
+      if (data) {
+        personType[0].options = Object.values(data.PERSON_TYPE).map((p) => {
+          return {
+            label: p.NAME,
+            code: p.ID,
+          };
+        });
       }
-      personType.value = Object.values(this.OPTIONS.result.PERSON_TYPE).find(
+      personType[0].value = Object.values(data.PERSON_TYPE).find(
         (p) => p.CHECKED === 'Y'
       ).ID;
 
       //delivery
-      const delivery = {
-        property: 'select',
-        type: 'radio',
-        id: 'ID_DELIVERY_ID_',
-        name: 'DELIVERY_ID',
-        label: 'Delivery',
-      };
-      if (this.OPTIONS.result) {
-        delivery.options = Object.values(this.OPTIONS.result.DELIVERY).map(
-          (d) => {
-            return {
-              label: d.NAME,
-              code: d.ID,
-            };
-          }
-        );
+      const delivery = [
+        {
+          property: 'select',
+          type: 'radio',
+          id: 'ID_DELIVERY_ID_',
+          name: 'DELIVERY_ID',
+          label: 'Delivery',
+        },
+      ];
+      if (data) {
+        delivery[0].options = Object.values(data.DELIVERY).map((d) => {
+          return {
+            label: d.NAME,
+            code: d.ID,
+          };
+        });
       }
-      delivery.value = Object.values(this.OPTIONS.result.DELIVERY).find(
+      delivery[0].value = Object.values(data.DELIVERY).find(
         (d) => d.CHECKED === 'Y'
       ).ID;
 
       //paysystem
-      const paysystem = {
-        property: 'select',
-        type: 'radio',
-        id: 'ID_PAY_SYSTEM_ID_',
-        name: 'PAY_SYSTEM_ID',
-        label: 'Pay system',
-      };
-      if (this.OPTIONS.result) {
-        paysystem.options = Object.values(this.OPTIONS.result.PAY_SYSTEM).map(
-          (p) => {
-            return {
-              label: p.NAME,
-              code: p.ID,
-            };
-          }
-        );
+      const paysystem = [
+        {
+          property: 'select',
+          type: 'radio',
+          id: 'ID_PAY_SYSTEM_ID_',
+          name: 'PAY_SYSTEM_ID',
+          label: 'Pay system',
+        },
+      ];
+      if (data) {
+        paysystem[0].options = Object.values(data.PAY_SYSTEM).map((p) => {
+          return {
+            label: p.NAME,
+            code: p.ID,
+          };
+        });
       }
-      paysystem.value = Object.values(this.OPTIONS.result.PAY_SYSTEM).find(
+      paysystem[0].value = Object.values(data.PAY_SYSTEM).find(
         (p) => p.CHECKED === 'Y'
       ).ID;
 
       //order prors
       let orderProps = [];
 
-      if (this.OPTIONS.result) {
-        orderProps = this.OPTIONS.result.ORDER_PROP.properties.map((p) => {
+      if (data) {
+        orderProps = data.ORDER_PROP.properties.map((p) => {
+          let property = 'text';
+          if (p.IS_ADDRESS === 'Y') {
+            property = 'textarea';
+          }
           return {
-            property: 'text',
+            property,
             id: p.ID,
             name: p.CODE,
             label: p.NAME,
@@ -173,9 +239,67 @@ export const orderStore = defineStore('order', {
         delivery,
         paysystem,
         orderProps,
+        location,
+      };
+    },
+    loadLocationHints({ control, action }, callback = () => {}) {
+      control.loading = true;
+
+      const data = {
+        select: {
+          1: 'CODE',
+          2: 'TYPE_ID',
+          VALUE: 'ID',
+          DISPLAY: 'NAME.NAME',
+        },
+        additionals: {
+          1: 'PATH',
+        },
+        filter: {
+          '=PHRASE': control.value.forEach
+            ? control.value.value
+            : control.value,
+          '=NAME.LANGUAGE_ID': 'ru',
+          '=SITE_ID': 's1',
+        },
+        version: '2',
+        PAGE_SIZE: '10',
+        PAGE: '0',
       };
 
-      console.log(this.controls);
+      BX.ajax({
+        method: 'POST',
+        dataType: 'json',
+        url: '/bitrix/components/bitrix/sale.location.selector.search/get.php',
+        data,
+        onsuccess: (result) => {
+          control.loading = false;
+          resultFn(result);
+        },
+        onfailure: (error) => {
+          console.log(error);
+        },
+      });
+
+      function resultFn(result) {
+        if (!result.data || !result.data.ITEMS || !result.data.ITEMS.map) {
+          return;
+        }
+
+        control.hints = result.data.ITEMS.map((obj) => {
+          return {
+            id: obj.CODE,
+            value: obj.DISPLAY,
+          };
+        });
+
+        if (callback) {
+          callback();
+        }
+      }
+    },
+    setLocationHints({ control, value }) {
+      control.hints = value;
     },
   },
 });

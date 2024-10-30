@@ -11,6 +11,7 @@ return [
 	'rel' => [
 		'main.polyfill.core',
 		'local.vue-components.control-text',
+		'local.vue-components.control-textarea',
 		'local.vue-components.control-hint',
 		'local.vue-components.control-select-dropdown',
 		'local.vue-components.control-select-radio',

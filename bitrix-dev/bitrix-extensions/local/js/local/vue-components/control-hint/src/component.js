@@ -19,8 +19,6 @@ export const ControlHint = {
   props: ['control', 'id', 'name'],
   // language=Vue
   template: `
-
-  {{control.hints}}
 		<div
       :class="{
         'twpx-form-control': true,
@@ -60,8 +58,8 @@ export const ControlHint = {
       <div class="twpx-form-control-clear" @click.prevent="clearInput()" v-show="isClearable"></div>
       <div class="twpx-form-control-loader" v-show="isLoading"></div>
 
-      <div class="b-input-hint" v-if="hintItems.length">
-        <div v-for="(hint, index) in hintItems" :data-id="hint.id" :data-value="hint.value" :class="{active: activeHintArray[index]}" class="b-input-hint__item" @click.prevent="clickHint(hint)">{{ hint.value }}</div>
+      <div class="twpx-form-control__list" v-if="hintItems.length">
+        <div v-for="(hint, index) in hintItems" :data-id="hint.id" :data-value="hint.value" :class="{active: activeHintArray[index]}" class="twpx-form-control__list__item" @click.prevent="clickHint(hint)">{{ hint.value }}</div>
       </div>
 
       <div
@@ -116,7 +114,6 @@ export const ControlHint = {
         return this.control.value;
       },
       set(value) {
-        console.log(value);
         this.$emit('input', { value });
 
         if (this.controlValue.length >= this.control.count) {
