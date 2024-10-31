@@ -30,7 +30,7 @@ export class OrderMake {
           });
         }
 
-        orderStore().createControls();
+        orderStore().createData();
       },
     });
 

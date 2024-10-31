@@ -3,6 +3,7 @@ import './application.css';
 import { LocationComponent } from 'local.vue-components.location-component';
 import { ControlComponent } from 'local.vue-components.control-component';
 import { LoaderCircle } from 'local.vue-components.loader-circle';
+import { ButtonComponent } from 'local.vue-components.button-component';
 
 import { mapState, mapActions } from 'ui.vue3.pinia';
 import { orderStore } from '../stores/order';
@@ -13,7 +14,12 @@ export const Application = {
       locations: undefined,
     };
   },
-  components: { LocationComponent, ControlComponent, LoaderCircle },
+  components: {
+    LocationComponent,
+    ControlComponent,
+    LoaderCircle,
+    ButtonComponent,
+  },
   // language=Vue
 
   template: `
@@ -92,6 +98,8 @@ export const Application = {
     </fieldset>
 
     <hr>
+
+    <ButtonComponent name="Оформить заказ" @clickButton="clickButton" />
     
   </form>
   `,
@@ -109,7 +117,11 @@ export const Application = {
       'loadData',
       'loadLocationHints',
       'setLocationHints',
+      'sendForm',
     ]),
+    clickButton() {
+      this.sendForm();
+    },
     input(attrs) {
       this.changeControlValue(attrs);
 

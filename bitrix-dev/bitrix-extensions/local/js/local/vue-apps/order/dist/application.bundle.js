@@ -5,6 +5,7 @@
   local_vueComponents_locationComponent,
   local_vueComponents_controlComponent,
   local_vueComponents_loaderCircle,
+  local_vueComponents_buttonComponent,
   ui_vue3_pinia
 ) {
   'use strict';
@@ -15,6 +16,8 @@
         OPTIONS: {},
         controls: {},
         result: {},
+        location: {},
+        personTypeOld: '',
         loading: false,
         sessid: window.BX.bitrix_sessid(),
       };
@@ -38,7 +41,28 @@
       },
     },
     actions: {
+      sendForm: function sendForm() {
+        BX.ajax.submitAjax(BX('bx-soa-order-form'), {
+          url: this.OPTIONS.ajaxUrl,
+          method: 'POST',
+          dataType: 'json',
+          data: {
+            via_ajax: 'Y',
+            action: 'saveOrderAjax',
+            sessid: BX.bitrix_sessid(),
+            SITE_ID: this.OPTIONS.siteID,
+            signedParamsString: this.OPTIONS.signedParamsString,
+          },
+          onsuccess: function onsuccess(result) {
+            console.log(result);
+          },
+          onfailure: function onfailure(error) {
+            console.log(error);
+          },
+        });
+      },
       loadData: function loadData() {
+        var _this = this;
         this.loading = true;
         var self = this;
         BX.ajax({
@@ -51,6 +75,12 @@
             self.setLoadResult({
               result: result,
             });
+            self.setPersonTypeOld(self.result.order);
+            _this.createLocation({
+              data: self.result.order,
+              locations: self.result.locations,
+            });
+            self.createControls(self.result.order);
           },
           onfailure: function onfailure(error) {},
         });
@@ -72,8 +102,13 @@
         switch (control.property) {
           case 'text':
           case 'textarea':
-          case 'hint':
             this.changeTextControlValue({
+              control: control,
+              value: value,
+            });
+            break;
+          case 'hint':
+            this.changeHintControlValue({
               control: control,
               value: value,
             });
@@ -126,15 +161,61 @@
           value = _ref2.value;
         control.value = value;
       },
-      changeSelectRadioValue: function changeSelectRadioValue(_ref3) {
+      changeHintControlValue: function changeHintControlValue(_ref3) {
         var control = _ref3.control,
           value = _ref3.value;
         control.value = value;
+        if (babelHelpers['typeof'](value) === 'object') {
+          this.location.last = value;
+        }
       },
-      setLoadResult: function setLoadResult(_ref4) {
-        var result = _ref4.result;
+      changeSelectRadioValue: function changeSelectRadioValue(_ref4) {
+        var control = _ref4.control,
+          value = _ref4.value;
+        control.value = value;
+      },
+      setLoadResult: function setLoadResult(_ref5) {
+        var result = _ref5.result;
         this.result = result;
-        this.createControls(this.result.order);
+      },
+      setPersonTypeOld: function setPersonTypeOld(data) {
+        this.personTypeOld = Object.entries(data.PERSON_TYPE).find(function (
+          entry
+        ) {
+          return entry[1].CHECKED === 'Y';
+        })[0];
+      },
+      createData: function createData() {
+        this.setPersonTypeOld(this.OPTIONS.result);
+        this.createLocation({
+          data: this.OPTIONS.result,
+          locations: this.OPTIONS.locations,
+        });
+        this.createControls();
+      },
+      createLocation: function createLocation(_ref6) {
+        var data = _ref6.data,
+          locations = _ref6.locations;
+        var id = Object.keys(locations)[0];
+        var orderProp = data.ORDER_PROP.properties.find(function (p) {
+          return p.IS_LOCATION === 'Y';
+        });
+
+        //get location name
+        var string = Object.values(locations)[0].output[0];
+        var index1 = string.indexOf('pathNames');
+        var index2 = string.indexOf('}', index1);
+        var sub = string.substring(index1 - 1, index2 + 1);
+        var obj = JSON.parse('{'.concat(sub.replace(/'/gi, '"'), '}'));
+        var name = Object.values(obj.pathNames)[1];
+        this.location = {
+          label: orderProp.NAME,
+          inputId: id,
+          last: {
+            id: orderProp.VALUE[0],
+            value: name,
+          },
+        };
       },
       createControls: function createControls() {
         var data =
@@ -146,8 +227,8 @@
           {
             property: 'hint',
             id: 'twpxOrderLocationId',
-            name: 'ORDER_PROP_6',
-            value: '',
+            name: 'ORDER_PROP_'.concat(this.location.inputId),
+            value: this.location.last || '',
             count: 3,
             action: 'twinpx:location-hint',
             required: false,
@@ -238,7 +319,7 @@
             return {
               property: property,
               id: p.ID,
-              name: p.CODE,
+              name: 'ORDER_PROP_'.concat(p.ID),
               label: p.NAME,
               value: p.VALUE[0],
               required: false,
@@ -280,7 +361,25 @@
               id: 'BUYER_STORE',
               name: 'BUYER_STORE',
               label: 'BUYER_STORE',
-              value: 'BUYER_STORE',
+              value: String(data.BUYER_STORE),
+              required: false,
+              disabled: false,
+            },
+            {
+              property: 'text',
+              id: 'RECENT_DELIVERY_VALUE',
+              name: 'RECENT_DELIVERY_VALUE',
+              label: 'RECENT_DELIVERY_VALUE',
+              value: this.location.last.id,
+              required: false,
+              disabled: false,
+            },
+            {
+              property: 'text',
+              id: 'PERSON_TYPE_OLD',
+              name: 'PERSON_TYPE_OLD',
+              label: 'PERSON_TYPE_OLD',
+              value: this.personTypeOld,
               required: false,
               disabled: false,
             },
@@ -292,9 +391,9 @@
           location: location,
         };
       },
-      loadLocationHints: function loadLocationHints(_ref5) {
-        var control = _ref5.control,
-          action = _ref5.action;
+      loadLocationHints: function loadLocationHints(_ref7) {
+        var control = _ref7.control,
+          action = _ref7.action;
         var callback =
           arguments.length > 1 && arguments[1] !== undefined
             ? arguments[1]
@@ -349,9 +448,9 @@
           }
         }
       },
-      setLocationHints: function setLocationHints(_ref6) {
-        var control = _ref6.control,
-          value = _ref6.value;
+      setLocationHints: function setLocationHints(_ref8) {
+        var control = _ref8.control,
+          value = _ref8.value;
         control.hints = value;
       },
     },
@@ -402,11 +501,12 @@
         local_vueComponents_locationComponent.LocationComponent,
       ControlComponent: local_vueComponents_controlComponent.ControlComponent,
       LoaderCircle: local_vueComponents_loaderCircle.LoaderCircle,
+      ButtonComponent: local_vueComponents_buttonComponent.ButtonComponent,
     },
     // language=Vue
 
     template:
-      '\n  <LoaderCircle :show="loading" />\n  <form id="bx-soa-order-form" ref="form">\n\n    <fieldset>\n      <legend>Person type</legend>\n      <div v-for="control in controls.personType" :key="control.id">\n        <ControlComponent :control="control" @input="input" @hints="hints" />\n      </div>\n    </fieldset>\n\n    <hr>\n\n    <fieldset>\n      <legend>Delivery</legend>\n      <div v-for="control in controls.delivery" :key="control.id">\n        <ControlComponent  :control="control" @input="input" @hints="hints" />\n      </div>\n    </fieldset>\n\n    <hr>\n\n    <fieldset>\n      <legend>Location</legend>\n      <hr>\n      <div v-for="control in controls.location" :key="control.id">\n        <LocationComponent :control="control" @input="input" @hints="locationHints" />\n      </div>\n    </fieldset>\n\n    <hr>\n\n    <fieldset>\n      <legend>Paysystem</legend>\n      <div v-for="control in controls.paysystem" :key="control.id">\n        <ControlComponent :control="control" @input="input" @hints="hints" />\n      </div>\n    </fieldset>\n\n    <hr>\n\n    <fieldset>\n      <legend>Order props</legend>\n      <hr>\n      <div v-for="(control, index) in controls.orderProps" :key="control.id">\n        <ControlComponent :control="control" @input="input" @hints="hints" />\n        <hr v-if="index + 1 < controls.orderProps.length">\n      </div>\n    </fieldset>\n\n    <hr>\n\n    <fieldset>\n      <legend>Comment</legend>\n      <ControlComponent :control="{\n            property: \'textarea\',\n            id: \'orderDescription\',\n            name: \'ORDER_DESCRIPTION\',\n            label: \'Comment\',\n            value: \'\',\n            required: false,\n            disabled: false,\n          }" @input="input" @hints="hints" />\n    </fieldset>\n\n    <hr>\n\n    <fieldset>\n      <legend>Hidden</legend>\n      <hr>\n      <div style="display: grid; gap: 16px; grid-template-columns: repeat(4, 1fr);">\n        <ControlComponent v-for="control in controls.hidden" :key="control.id" :control="control" @input="input" @hints="hints" />\n      </div>\n    </fieldset>\n\n    <hr>\n    \n  </form>\n  ',
+      '\n  <LoaderCircle :show="loading" />\n  <form id="bx-soa-order-form" ref="form">\n\n    <fieldset>\n      <legend>Person type</legend>\n      <div v-for="control in controls.personType" :key="control.id">\n        <ControlComponent :control="control" @input="input" @hints="hints" />\n      </div>\n    </fieldset>\n\n    <hr>\n\n    <fieldset>\n      <legend>Delivery</legend>\n      <div v-for="control in controls.delivery" :key="control.id">\n        <ControlComponent  :control="control" @input="input" @hints="hints" />\n      </div>\n    </fieldset>\n\n    <hr>\n\n    <fieldset>\n      <legend>Location</legend>\n      <hr>\n      <div v-for="control in controls.location" :key="control.id">\n        <LocationComponent :control="control" @input="input" @hints="locationHints" />\n      </div>\n    </fieldset>\n\n    <hr>\n\n    <fieldset>\n      <legend>Paysystem</legend>\n      <div v-for="control in controls.paysystem" :key="control.id">\n        <ControlComponent :control="control" @input="input" @hints="hints" />\n      </div>\n    </fieldset>\n\n    <hr>\n\n    <fieldset>\n      <legend>Order props</legend>\n      <hr>\n      <div v-for="(control, index) in controls.orderProps" :key="control.id">\n        <ControlComponent :control="control" @input="input" @hints="hints" />\n        <hr v-if="index + 1 < controls.orderProps.length">\n      </div>\n    </fieldset>\n\n    <hr>\n\n    <fieldset>\n      <legend>Comment</legend>\n      <ControlComponent :control="{\n            property: \'textarea\',\n            id: \'orderDescription\',\n            name: \'ORDER_DESCRIPTION\',\n            label: \'Comment\',\n            value: \'\',\n            required: false,\n            disabled: false,\n          }" @input="input" @hints="hints" />\n    </fieldset>\n\n    <hr>\n\n    <fieldset>\n      <legend>Hidden</legend>\n      <hr>\n      <div style="display: grid; gap: 16px; grid-template-columns: repeat(4, 1fr);">\n        <ControlComponent v-for="control in controls.hidden" :key="control.id" :control="control" @input="input" @hints="hints" />\n      </div>\n    </fieldset>\n\n    <hr>\n\n    <ButtonComponent name="\u041E\u0444\u043E\u0440\u043C\u0438\u0442\u044C \u0437\u0430\u043A\u0430\u0437" @clickButton="clickButton" />\n    \n  </form>\n  ',
     computed: _objectSpread(
       _objectSpread(
         {},
@@ -429,10 +529,14 @@
           'loadData',
           'loadLocationHints',
           'setLocationHints',
+          'sendForm',
         ])
       ),
       {},
       {
+        clickButton: function clickButton() {
+          this.sendForm();
+        },
         input: function input(attrs) {
           this.changeControlValue(attrs);
           if (
@@ -531,7 +635,7 @@
                     orderStore()[key] = self.options[key] || '';
                   });
                 }
-                orderStore().createControls();
+                orderStore().createData();
               },
             })
           );
@@ -568,5 +672,6 @@
   BX,
   BX.Controls,
   BX.Loaders,
+  BX.Buttons,
   BX.Vue3.Pinia
 ); //# sourceMappingURL=application.bundle.js.map

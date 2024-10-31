@@ -5,6 +5,8 @@ export const orderStore = defineStore('order', {
     OPTIONS: {},
     controls: {},
     result: {},
+    location: {},
+    personTypeOld: '',
     loading: false,
     sessid: window.BX.bitrix_sessid(),
   }),
@@ -26,6 +28,26 @@ export const orderStore = defineStore('order', {
     },
   },
   actions: {
+    sendForm() {
+      BX.ajax.submitAjax(BX('bx-soa-order-form'), {
+        url: this.OPTIONS.ajaxUrl,
+        method: 'POST',
+        dataType: 'json',
+        data: {
+          via_ajax: 'Y',
+          action: 'saveOrderAjax',
+          sessid: BX.bitrix_sessid(),
+          SITE_ID: this.OPTIONS.siteID,
+          signedParamsString: this.OPTIONS.signedParamsString,
+        },
+        onsuccess: (result) => {
+          console.log(result);
+        },
+        onfailure: (error) => {
+          console.log(error);
+        },
+      });
+    },
     loadData() {
       this.loading = true;
 
@@ -39,6 +61,12 @@ export const orderStore = defineStore('order', {
         onsuccess: (result) => {
           self.loading = false;
           self.setLoadResult({ result });
+          self.setPersonTypeOld(self.result.order);
+          this.createLocation({
+            data: self.result.order,
+            locations: self.result.locations,
+          });
+          self.createControls(self.result.order);
         },
         onfailure: (error) => {},
       });
@@ -57,8 +85,10 @@ export const orderStore = defineStore('order', {
       switch (control.property) {
         case 'text':
         case 'textarea':
-        case 'hint':
           this.changeTextControlValue({ control, value });
+          break;
+        case 'hint':
+          this.changeHintControlValue({ control, value });
           break;
         case 'multiselect':
           this.changeMultiselectValue({ control, value, checked });
@@ -87,12 +117,50 @@ export const orderStore = defineStore('order', {
     changeTextControlValue({ control, value }) {
       control.value = value;
     },
+    changeHintControlValue({ control, value }) {
+      control.value = value;
+      if (typeof value === 'object') {
+        this.location.last = value;
+      }
+    },
     changeSelectRadioValue({ control, value }) {
       control.value = value;
     },
     setLoadResult({ result }) {
       this.result = result;
-      this.createControls(this.result.order);
+    },
+    setPersonTypeOld(data) {
+      this.personTypeOld = Object.entries(data.PERSON_TYPE).find(
+        (entry) => entry[1].CHECKED === 'Y'
+      )[0];
+    },
+    createData() {
+      this.setPersonTypeOld(this.OPTIONS.result);
+      this.createLocation({
+        data: this.OPTIONS.result,
+        locations: this.OPTIONS.locations,
+      });
+      this.createControls();
+    },
+    createLocation({ data, locations }) {
+      const id = Object.keys(locations)[0];
+      const orderProp = data.ORDER_PROP.properties.find(
+        (p) => p.IS_LOCATION === 'Y'
+      );
+
+      //get location name
+      const string = Object.values(locations)[0].output[0];
+      const index1 = string.indexOf('pathNames');
+      const index2 = string.indexOf('}', index1);
+      const sub = string.substring(index1 - 1, index2 + 1);
+      const obj = JSON.parse(`{${sub.replace(/'/gi, `"`)}}`);
+      const name = Object.values(obj.pathNames)[1];
+
+      this.location = {
+        label: orderProp.NAME,
+        inputId: id,
+        last: { id: orderProp.VALUE[0], value: name },
+      };
     },
     createControls(data = this.OPTIONS.result) {
       //location
@@ -100,8 +168,8 @@ export const orderStore = defineStore('order', {
         {
           property: 'hint',
           id: 'twpxOrderLocationId',
-          name: 'ORDER_PROP_6',
-          value: '',
+          name: `ORDER_PROP_${this.location.inputId}`,
+          value: this.location.last || '',
           count: 3,
           action: 'twinpx:location-hint',
           required: false,
@@ -187,7 +255,7 @@ export const orderStore = defineStore('order', {
           return {
             property,
             id: p.ID,
-            name: p.CODE,
+            name: `ORDER_PROP_${p.ID}`,
             label: p.NAME,
             value: p.VALUE[0],
             required: false,
@@ -230,7 +298,25 @@ export const orderStore = defineStore('order', {
             id: 'BUYER_STORE',
             name: 'BUYER_STORE',
             label: 'BUYER_STORE',
-            value: 'BUYER_STORE',
+            value: String(data.BUYER_STORE),
+            required: false,
+            disabled: false,
+          },
+          {
+            property: 'text',
+            id: 'RECENT_DELIVERY_VALUE',
+            name: 'RECENT_DELIVERY_VALUE',
+            label: 'RECENT_DELIVERY_VALUE',
+            value: this.location.last.id,
+            required: false,
+            disabled: false,
+          },
+          {
+            property: 'text',
+            id: 'PERSON_TYPE_OLD',
+            name: 'PERSON_TYPE_OLD',
+            label: 'PERSON_TYPE_OLD',
+            value: this.personTypeOld,
             required: false,
             disabled: false,
           },

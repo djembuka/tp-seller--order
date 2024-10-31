@@ -1,0 +1,21 @@
+.twpx-button {
+  height: 64px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+  background-color: #0a16aa;
+  color: #fff;
+  border-radius: 8px;
+  transition: opacity 0.3s ease;
+  cursor: pointer;
+}
+
+.twpx-button:hover {
+  opacity: 0.7;
+}
+
+.twpx-button--disabled {
+  opacity: 0.1;
+  cursor: default;
+}

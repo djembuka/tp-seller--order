@@ -17,6 +17,7 @@ return [
 		'local.vue-components.location-component',
 		'local.vue-components.control-component',
 		'local.vue-components.loader-circle',
+		'local.vue-components.button-component',
 		'ui.vue3.pinia',
 	],
 	'skip_core' => true,
