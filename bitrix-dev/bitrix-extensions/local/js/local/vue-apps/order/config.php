@@ -18,6 +18,7 @@ return [
 		'local.vue-components.control-component',
 		'local.vue-components.loader-circle',
 		'local.vue-components.button-component',
+		'local.vue-components.error-message',
 		'ui.vue3.pinia',
 	],
 	'skip_core' => true,

@@ -8,6 +8,7 @@ export const orderStore = defineStore('order', {
     location: {},
     personTypeOld: '',
     loading: false,
+    error: '',
     sessid: window.BX.bitrix_sessid(),
   }),
   getters: {
@@ -28,23 +29,42 @@ export const orderStore = defineStore('order', {
     },
   },
   actions: {
+    showError({ message }) {
+      this.error = message;
+    },
+    hideError() {
+      this.showError({ message: '' });
+    },
+    getSaveData() {
+      return {
+        ...this.formData,
+        sessid: this.sessid,
+        via_ajax: 'Y',
+        action: 'saveOrderAjax',
+        SITE_ID: this.OPTIONS.siteID,
+        signedParamsString: this.OPTIONS.signedParamsString,
+      };
+    },
     sendForm() {
-      BX.ajax.submitAjax(BX('bx-soa-order-form'), {
-        url: this.OPTIONS.ajaxUrl,
+      BX.ajax({
         method: 'POST',
         dataType: 'json',
-        data: {
-          via_ajax: 'Y',
-          action: 'saveOrderAjax',
-          sessid: BX.bitrix_sessid(),
-          SITE_ID: this.OPTIONS.siteID,
-          signedParamsString: this.OPTIONS.signedParamsString,
-        },
+        url: this.OPTIONS.ajaxUrl,
+        data: this.getSaveData(),
         onsuccess: (result) => {
-          console.log(result);
+          console.log('success', result);
+          if (result && result.order) {
+            if (result.order.REDIRECT_URL) {
+              location.href = result.order.REDIRECT_URL;
+            } else if (result.order.ERROR && result.order.ERROR.PROPERTY) {
+              this.showError({
+                message: result.order.ERROR.PROPERTY.join('<br>'),
+              });
+            }
+          }
         },
         onfailure: (error) => {
-          console.log(error);
+          console.log('failure', error);
         },
       });
     },
@@ -258,7 +278,7 @@ export const orderStore = defineStore('order', {
             name: `ORDER_PROP_${p.ID}`,
             label: p.NAME,
             value: p.VALUE[0],
-            required: false,
+            required: p.REQUIRED === 'Y',
             disabled: false,
           };
         });

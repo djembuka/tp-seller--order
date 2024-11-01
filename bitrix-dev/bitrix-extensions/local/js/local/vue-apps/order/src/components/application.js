@@ -4,6 +4,7 @@ import { LocationComponent } from 'local.vue-components.location-component';
 import { ControlComponent } from 'local.vue-components.control-component';
 import { LoaderCircle } from 'local.vue-components.loader-circle';
 import { ButtonComponent } from 'local.vue-components.button-component';
+import { ErrorMessage } from 'local.vue-components.error-message';
 
 import { mapState, mapActions } from 'ui.vue3.pinia';
 import { orderStore } from '../stores/order';
@@ -19,11 +20,13 @@ export const Application = {
     ControlComponent,
     LoaderCircle,
     ButtonComponent,
+    ErrorMessage,
   },
   // language=Vue
 
   template: `
   <LoaderCircle :show="loading" />
+  <ErrorMessage :error="error" @hideError="hideError" />
   <form id="bx-soa-order-form" ref="form">
 
     <fieldset>
@@ -100,11 +103,13 @@ export const Application = {
     <hr>
 
     <ButtonComponent name="Оформить заказ" @clickButton="clickButton" />
+
+    <hr>
     
   </form>
   `,
   computed: {
-    ...mapState(orderStore, ['OPTIONS', 'controls', 'loading']),
+    ...mapState(orderStore, ['OPTIONS', 'controls', 'loading', 'error']),
     LOCATION() {
       if (this.OPTIONS.locations) {
         return Object.values(this.OPTIONS.locations)[0].lastValue;
@@ -118,6 +123,7 @@ export const Application = {
       'loadLocationHints',
       'setLocationHints',
       'sendForm',
+      'hideError',
     ]),
     clickButton() {
       this.sendForm();

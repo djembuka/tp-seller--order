@@ -1,0 +1,63 @@
+.vue2-component-error {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background-color: #ffffffbb;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  text-align: left;
+  z-index: 1000;
+}
+
+.vue2-component-error__content {
+  background: #ff3939;
+  border-radius: 7px;
+  padding: 29px 40px 29px 34px;
+  color: #fff;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  width: 80%;
+}
+
+.vue2-component-error__text {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: start;
+      -ms-flex-pack: start;
+          justify-content: flex-start;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+}
+
+.vue2-component-error__text svg {
+  margin-right: 2rem;
+  -ms-flex-negative: 0;
+      flex-shrink: 0;
+}
+
+.vue2-component-error .btn {
+  background-color: #ffffff33;
+  color: #fff;
+}
+
+.vue2-component-error .btn:hover {
+  background-color: #ffffff44;
+}
